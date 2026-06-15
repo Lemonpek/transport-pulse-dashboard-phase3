@@ -1,0 +1,1163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transport Pulse Phase 3 - EDS V2</title>
+  <style>
+    :root {
+      --eds-blue: #0082f0;
+      --eds-blue-dark: #0069c2;
+      --eds-blue-soft: #e8f4ff;
+      --ink: #161616;
+      --text: #242424;
+      --muted: #666;
+      --canvas: #f2f2f2;
+      --surface: #fff;
+      --surface-alt: #f7f7f7;
+      --border: #d8d8d8;
+      --border-strong: #b8b8b8;
+      --positive: #16834b;
+      --positive-soft: #e5f5ec;
+      --warning: #a75d00;
+      --warning-soft: #fff1dd;
+      --negative: #c6283d;
+      --negative-soft: #fde8ec;
+      --info: #0069c2;
+      --shadow: 0 8px 24px rgba(0, 0, 0, .18);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
+      background: #cfcfcf;
+      font-family: "Ericsson Hilda", "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, select { font: inherit; letter-spacing: 0; }
+
+    button:focus-visible, input:focus-visible, select:focus-visible, [tabindex="0"]:focus-visible {
+      outline: 2px solid #62b8ff;
+      outline-offset: 2px;
+    }
+
+    .viewport {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .report {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      background: var(--canvas);
+      transform-origin: center;
+    }
+
+    .product-bar {
+      height: 52px;
+      display: grid;
+      grid-template-columns: 48px 230px 1fr auto;
+      align-items: center;
+      color: #fff;
+      background: #000;
+      border-bottom: 1px solid #383838;
+    }
+
+    .brand-mark {
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-right: 1px solid #383838;
+    }
+
+    .brand-mark svg { width: 24px; height: 24px; }
+
+    .product-name {
+      padding-left: 14px;
+      font-size: 17px;
+      font-weight: 650;
+    }
+
+    .page-context {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      color: #d8d8d8;
+      font-size: 13px;
+    }
+
+    .page-context strong { color: #fff; font-weight: 600; }
+
+    .page-context .divider { color: #666; }
+
+    .bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-right: 12px;
+    }
+
+    .bar-note {
+      color: #b8b8b8;
+      font-size: 11px;
+      margin-right: 8px;
+      white-space: nowrap;
+    }
+
+    .icon-btn, .text-btn {
+      height: 30px;
+      border: 1px solid #525252;
+      border-radius: 2px;
+      color: #f2f2f2;
+      background: #181818;
+      cursor: pointer;
+    }
+
+    .icon-btn {
+      width: 32px;
+      display: grid;
+      place-items: center;
+    }
+
+    .icon-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; }
+
+    .text-btn { padding: 0 10px; font-size: 12px; }
+    .icon-btn:hover, .text-btn:hover { background: #303030; }
+
+    .control-bar {
+      height: 52px;
+      display: grid;
+      grid-template-columns: 560px 1fr;
+      align-items: center;
+      padding: 0 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-nav { display: flex; align-items: center; height: 100%; }
+
+    .nav-btn {
+      position: relative;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 15px;
+      border: 0;
+      color: #525252;
+      background: transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .nav-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+    .nav-btn:hover { color: var(--ink); background: var(--surface-alt); }
+    .nav-btn.active { color: var(--ink); font-weight: 650; }
+    .nav-btn.active::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 0;
+      height: 3px;
+      background: var(--eds-blue);
+    }
+
+    .core-filters {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      justify-self: end;
+      width: 620px;
+    }
+
+    .filter-control { display: grid; grid-template-columns: auto minmax(100px, 1fr); align-items: center; gap: 7px; }
+    .filter-control label { color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .filter-control select {
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      color: var(--ink);
+      background: #fff;
+      padding: 0 8px;
+    }
+
+    .page {
+      display: none;
+      height: 616px;
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .page.active { display: block; }
+
+    .section {
+      min-width: 0;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+
+    .section-head {
+      height: 39px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title { font-size: 14px; font-weight: 650; color: var(--ink); }
+    .section-note { color: var(--muted); font-size: 10px; }
+
+    .kpi-row {
+      height: 78px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .kpi {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto 1fr;
+      align-items: end;
+      padding: 10px 12px 9px 14px;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+
+    .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--eds-blue); }
+    .kpi.warn::before { background: #f5a623; }
+    .kpi.bad::before { background: #e04b5f; }
+    .kpi.good::before { background: #24a064; }
+    .kpi-label { grid-column: 1 / -1; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .kpi-value { color: var(--ink); font-size: 28px; line-height: 1; font-weight: 520; }
+    .kpi-change { align-self: end; padding-bottom: 2px; color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .kpi-change.up { color: var(--positive); }
+    .kpi-change.down { color: var(--negative); }
+
+    .daily-grid {
+      height: 500px;
+      display: grid;
+      grid-template-columns: 1.65fr 1fr;
+      gap: 10px;
+    }
+
+    .daily-main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: 325px 165px;
+      gap: 10px;
+    }
+
+    .daily-support {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .exception-table { height: calc(100% - 39px); padding: 0 10px 8px; }
+    .exception-table td { height: 42px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th, td { text-align: left; vertical-align: middle; border-bottom: 1px solid #e3e3e3; }
+    th { height: 34px; color: var(--muted); background: #fafafa; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    td { height: 48px; color: var(--text); }
+    th:first-child, td:first-child { padding-left: 8px; }
+    th:last-child, td:last-child { padding-right: 8px; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: #f7fbff; }
+    tbody tr.selected { background: var(--eds-blue-soft); box-shadow: inset 3px 0 0 var(--eds-blue); }
+
+    .severity {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 52px;
+      height: 21px;
+      padding: 0 7px;
+      border: 1px solid;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: 700;
+    }
+    .severity.high { color: var(--negative); background: var(--negative-soft); border-color: #ef9daa; }
+    .severity.medium { color: var(--warning); background: var(--warning-soft); border-color: #e6ba78; }
+    .severity.low { color: var(--positive); background: var(--positive-soft); border-color: #8cc9a9; }
+
+    .lane-name { display: block; color: var(--ink); font-weight: 650; }
+    .subtext { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
+    .action-link { color: var(--eds-blue-dark); font-weight: 650; }
+
+    .daily-side {
+      display: grid;
+      grid-template-rows: 230px 137px 113px;
+      gap: 10px;
+    }
+
+    .map-brief { position: relative; height: calc(100% - 39px); overflow: hidden; background: #eef4f8; }
+    .map-brief svg, .network-map svg { width: 100%; height: 100%; display: block; }
+    .snapshot-route { fill: none; stroke-linecap: round; stroke-linejoin: round; cursor: pointer; opacity: .88; }
+    .snapshot-risk-halo { fill: none; stroke: #dc3d52; stroke-width: 9px; stroke-linecap: round; opacity: .24; pointer-events: none; }
+    .snapshot-marker { stroke: #fff; stroke-width: 1.5; }
+    .snapshot-legend { position: absolute; left: 8px; bottom: 7px; display: flex; gap: 9px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 2px; color: var(--muted); background: rgba(255,255,255,.92); font-size: 8px; }
+    .snapshot-legend span { display: flex; align-items: center; gap: 4px; }
+    .snapshot-legend i { width: 14px; height: 2px; }
+    .map-label { fill: #a7b2ba; font-size: 23px; font-weight: 700; letter-spacing: 1px; }
+    .route { fill: none; stroke-linecap: round; cursor: pointer; opacity: .92; }
+    .route.high { stroke: #dc3d52; }
+    .route.medium { stroke: #e79a28; }
+    .route.low { stroke: #229d60; }
+    .route.selected { stroke-width: 5 !important; filter: drop-shadow(0 0 3px rgba(0,130,240,.65)); }
+    .port { stroke: #fff; stroke-width: 2; cursor: pointer; }
+    .news-marker { fill: #161616; stroke: #fff; stroke-width: 1.5; cursor: pointer; }
+
+    .mini-lanes { padding: 5px 10px 8px; }
+    .mini-lane { height: 19px; display: grid; grid-template-columns: 1.5fr .7fr .65fr; align-items: center; gap: 7px; font-size: 10px; }
+    .mini-bar { height: 5px; border-radius: 1px; background: #d8d8d8; overflow: hidden; }
+    .mini-bar span { display: block; height: 100%; background: var(--eds-blue); }
+
+    .lsp-list { padding: 7px 10px; }
+    .lsp-row {
+      height: 27px;
+      display: grid;
+      grid-template-columns: 66px 1fr 37px 54px;
+      align-items: center;
+      gap: 7px;
+      border-bottom: 1px solid #e8e8e8;
+      color: var(--text);
+      font-size: 9px;
+    }
+    .lsp-row:last-child { border-bottom: 0; }
+    .lsp-row strong { color: var(--ink); font-size: 10px; }
+    .lsp-row .mini-bar span.good { background: var(--positive); }
+    .lsp-row .mini-bar span.warn { background: var(--warning); }
+    .lsp-row .mini-bar span.bad { background: var(--negative); }
+    .lsp-delay { color: var(--muted); text-align: right; white-space: nowrap; }
+
+    .spot-news-compact { padding: 5px 8px; }
+    .spot-news-row {
+      width: 100%;
+      height: 38px;
+      display: grid;
+      grid-template-columns: 8px 1fr auto;
+      align-items: center;
+      gap: 7px;
+      padding: 0 3px;
+      border: 0;
+      border-bottom: 1px solid #e8e8e8;
+      color: var(--text);
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+    }
+    .spot-news-row:last-child { border-bottom: 0; }
+    .spot-news-row:hover { background: #f7fbff; }
+    .spot-news-row:focus-visible { outline: 2px solid var(--eds-blue); outline-offset: -2px; }
+    .spot-news-row i { width: 7px; height: 7px; border-radius: 50%; background: var(--negative); }
+    .spot-news-copy { min-width: 0; }
+    .spot-news-copy strong, .spot-news-copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .spot-news-copy strong { color: var(--ink); font-size: 9px; }
+    .spot-news-copy span { margin-top: 2px; color: var(--muted); font-size: 8px; }
+    .spot-news-risk { color: var(--muted); font-size: 8px; }
+
+    .ai-brief { padding: 10px 12px; }
+    .ai-brief p { margin: 0 0 7px; color: var(--text); font-size: 11px; line-height: 1.35; }
+    .ai-actions { display: flex; gap: 6px; }
+    .link-btn {
+      height: 25px;
+      padding: 0 8px;
+      border: 1px solid var(--eds-blue);
+      border-radius: 2px;
+      color: var(--eds-blue-dark);
+      background: #fff;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 650;
+    }
+    .link-btn.primary { color: #fff; background: var(--eds-blue); }
+
+    .network-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1.72fr .72fr;
+      grid-template-rows: 352px 226px;
+      gap: 10px;
+    }
+
+    .network-map { position: relative; background: #eef4f7; }
+    .map-toolbar {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      max-width: 430px;
+    }
+    .layer-btn {
+      height: 27px;
+      padding: 0 9px;
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      color: #525252;
+      background: rgba(255,255,255,.94);
+      cursor: pointer;
+      font-size: 9px;
+    }
+    .layer-btn.active { color: #fff; border-color: var(--eds-blue); background: var(--eds-blue); }
+    .layer-btn[data-layer="air"].active { border-color: #18864f; background: #18864f; }
+    .layer-btn[data-layer="sea"].active { border-color: #1677d2; background: #1677d2; }
+    .layer-btn[data-layer="road"].active { border-color: #cf7200; background: #cf7200; }
+
+    .map-kpis {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(3, 64px);
+      gap: 4px;
+    }
+    .map-kpi {
+      min-height: 38px;
+      padding: 5px 6px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      background: rgba(255,255,255,.94);
+    }
+    .map-kpi span { display: block; color: var(--muted); font-size: 7px; font-weight: 700; text-transform: uppercase; }
+    .map-kpi strong { display: block; margin-top: 2px; color: var(--ink); font-size: 13px; }
+
+    .world-map-base { pointer-events: none; }
+    .transport-route {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      cursor: pointer;
+      opacity: .82;
+      transition: opacity .15s ease, stroke-width .15s ease;
+    }
+    .transport-route:hover, .transport-route.selected { opacity: 1; stroke-width: 4 !important; }
+    .transport-route.selected { filter: drop-shadow(0 0 3px rgba(0,130,240,.7)); }
+    .mode-air { stroke: #18864f; }
+    .mode-sea { stroke: #1677d2; }
+    .mode-road { stroke: #cf7200; stroke-dasharray: 6 4; }
+    .route-risk-halo { fill: none; stroke: #dc3d52; stroke-width: 8; stroke-linecap: round; opacity: .26; pointer-events: none; }
+    .route-count { cursor: pointer; }
+    .route-count rect { fill: rgba(255,255,255,.96); stroke: #b8c4cb; stroke-width: 1; }
+    .route-count:hover rect, .route-count.selected rect { stroke: var(--eds-blue); stroke-width: 2; }
+    .route-count text { fill: var(--ink); font-size: 8px; font-weight: 700; text-anchor: middle; }
+    .location-label { fill: #35434c; font-size: 7px; font-weight: 650; paint-order: stroke; stroke: #fff; stroke-width: 2px; }
+    .network-location { stroke: #fff; stroke-width: 1.5; }
+    .origin-marker { fill: #3f4e57; }
+    .destination-marker { fill: #0082f0; }
+    .p44-marker { fill: #fff; stroke: #0082f0; stroke-width: 2; }
+
+    .map-legend {
+      position: absolute;
+      left: 10px;
+      bottom: 9px;
+      display: flex;
+      gap: 11px;
+      padding: 5px 8px;
+      color: #525252;
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-size: 9px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-line { width: 17px; height: 3px; }
+    .legend-count { min-width: 22px; height: 14px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #aebbc3; border-radius: 7px; color: var(--ink); background: #fff; font-size: 7px; font-style: normal; font-weight: 700; }
+
+    .inspector { grid-column: 2; grid-row: 1; }
+    .inspector-body { padding: 9px 10px; }
+    .object-type { color: var(--eds-blue-dark); font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    .object-title { margin: 2px 0 5px; color: var(--ink); font-size: 16px; font-weight: 650; }
+    .object-summary { margin: 0 0 6px; color: var(--muted); font-size: 9px; line-height: 1.3; }
+    .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .metric { min-height: 44px; padding: 5px 6px; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 2px; }
+    .metric span { display: block; color: var(--muted); font-size: 8px; font-weight: 700; text-transform: uppercase; }
+    .metric strong { display: block; margin-top: 2px; color: var(--ink); font-size: 13px; }
+    .inspector-block { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+    .inspector-block h4 { margin: 0 0 3px; color: var(--ink); font-size: 9px; }
+    .inspector-block p { margin: 0; color: var(--muted); font-size: 8px; line-height: 1.3; }
+    .inspector .ai-actions { margin-top: 6px !important; }
+
+    .lane-matrix { grid-column: 1 / -1; grid-row: 2; }
+    .lane-matrix .table-wrap { height: calc(100% - 39px); padding: 0 10px; overflow-y: auto; }
+    .lane-matrix th { height: 27px; }
+    .lane-matrix td { height: 22px; }
+
+    .shipment-search {
+      height: 52px;
+      display: grid;
+      grid-template-columns: 1.25fr .9fr .9fr .9fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+    .shipment-search input, .shipment-search select {
+      width: 100%;
+      height: 34px;
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      color: var(--ink);
+      background: #fff;
+      padding: 0 9px;
+    }
+
+    .shipment-grid { height: 536px; display: grid; grid-template-columns: 1.72fr .58fr; gap: 10px; }
+    .shipment-list .table-wrap { height: calc(100% - 39px); padding: 0 9px; overflow: hidden; }
+    .shipment-list table { font-size: 9px; }
+    .shipment-list th { height: 32px; font-size: 8px; }
+    .shipment-list td { height: 43px; }
+    .shipment-id { color: var(--eds-blue-dark); font-weight: 700; }
+    .status-text { font-weight: 650; }
+    .status-text.delayed { color: var(--negative); }
+    .status-text.track { color: var(--positive); }
+
+    .shipment-detail { padding-bottom: 10px; }
+    .detail-body { padding: 11px; }
+    .detail-id { color: var(--eds-blue-dark); font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    .detail-title { margin: 3px 0 2px; color: var(--ink); font-size: 18px; font-weight: 650; }
+    .detail-subtitle { color: var(--muted); font-size: 9px; }
+    .detail-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 9px; }
+    .detail-meta div { min-height: 38px; padding: 6px 7px; background: var(--surface-alt); border: 1px solid var(--border); }
+    .detail-meta span { display: block; color: var(--muted); font-size: 7px; font-weight: 700; text-transform: uppercase; }
+    .detail-meta strong { display: block; margin-top: 3px; color: var(--ink); font-size: 10px; }
+    .timeline { position: relative; margin: 11px 0 0 4px; padding-left: 14px; }
+    .timeline::before { content: ""; position: absolute; left: 3px; top: 5px; bottom: 5px; width: 1px; background: var(--border-strong); }
+    .event { position: relative; margin-bottom: 9px; color: var(--muted); font-size: 8px; line-height: 1.25; }
+    .event::before { content: ""; position: absolute; left: -14px; top: 2px; width: 7px; height: 7px; border-radius: 50%; background: var(--eds-blue); border: 1px solid #fff; }
+    .event.warn::before { background: #f5a623; }
+    .event strong { display: block; color: var(--ink); font-size: 9px; }
+    .detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+
+    .scope-strip {
+      height: 48px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      margin-bottom: 10px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .scope-item { display: flex; align-items: center; gap: 8px; padding: 0 12px; background: #fff; }
+    .scope-item span { color: var(--muted); font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    .scope-item strong { color: var(--ink); font-size: 12px; }
+
+    .ai-grid { height: 530px; display: grid; grid-template-rows: 205px 315px; gap: 10px; }
+    .ai-narratives { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .narrative { position: relative; padding: 15px 16px 12px; background: #fff; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+    .narrative::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 3px; background: var(--eds-blue); }
+    .narrative:nth-child(2)::before { background: #f5a623; }
+    .narrative:nth-child(3)::before { background: #24a064; }
+    .narrative-label { color: var(--muted); font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    .narrative h3 { margin: 6px 0 9px; color: var(--ink); font-size: 16px; }
+    .narrative p { margin: 0; color: #404040; font-size: 11px; line-height: 1.45; }
+    .narrative .link-btn { position: absolute; left: 16px; bottom: 12px; }
+
+    .evidence-grid { display: grid; grid-template-columns: .85fr 1.1fr 1fr; gap: 10px; }
+    .delta-list { padding: 8px 12px; }
+    .delta-row { height: 46px; display: grid; grid-template-columns: 1fr auto; align-items: center; border-bottom: 1px solid #e5e5e5; }
+    .delta-row:last-child { border-bottom: 0; }
+    .delta-row span { color: var(--muted); font-size: 10px; }
+    .delta-row strong { font-size: 16px; }
+    .delta-row strong.bad { color: var(--negative); }
+    .delta-row strong.good { color: var(--positive); }
+    .risk-bars { padding: 13px 12px; }
+    .risk-bar { display: grid; grid-template-columns: 112px 1fr 34px; align-items: center; gap: 8px; margin-bottom: 15px; font-size: 9px; }
+    .bar-track { height: 8px; background: #e8e8e8; overflow: hidden; }
+    .bar-track span { display: block; height: 100%; background: var(--eds-blue); }
+    .news-list { padding: 8px 12px; }
+    .news-item { min-height: 52px; display: grid; grid-template-columns: 8px 1fr auto; gap: 8px; align-items: center; border-bottom: 1px solid #e5e5e5; }
+    .news-item:last-child { border-bottom: 0; }
+    .news-dot { width: 8px; height: 8px; border-radius: 50%; background: #e04b5f; }
+    .news-item strong { display: block; color: var(--ink); font-size: 10px; }
+    .news-item span { color: var(--muted); font-size: 8px; }
+
+    .filter-drawer {
+      position: absolute;
+      z-index: 30;
+      top: 52px;
+      right: 0;
+      width: 310px;
+      height: 668px;
+      padding: 16px;
+      background: #fff;
+      border-left: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      transform: translateX(100%);
+      transition: transform .18s ease-out;
+    }
+    .filter-drawer.open { transform: translateX(0); }
+    .drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 17px; }
+    .drawer-head h2 { margin: 0; color: var(--ink); font-size: 17px; }
+    .close-btn { width: 30px; height: 30px; border: 0; background: transparent; cursor: pointer; font-size: 20px; }
+    .drawer-filter { margin-bottom: 13px; }
+    .drawer-filter label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    .drawer-filter select, .drawer-filter input { width: 100%; height: 35px; border: 1px solid var(--border-strong); border-radius: 2px; background: #fff; padding: 0 9px; }
+    .drawer-footer { position: absolute; left: 16px; right: 16px; bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .tooltip {
+      position: absolute;
+      z-index: 20;
+      width: 220px;
+      padding: 10px 11px;
+      pointer-events: none;
+      opacity: 0;
+      color: #fff;
+      background: #242424;
+      border: 1px solid #525252;
+      border-radius: 3px;
+      box-shadow: var(--shadow);
+      transition: opacity .1s;
+    }
+    .tooltip.visible { opacity: 1; }
+    .tooltip strong { display: block; margin-bottom: 4px; font-size: 11px; }
+    .tooltip span { display: block; color: #d8d8d8; font-size: 9px; line-height: 1.35; }
+
+    .modal-backdrop {
+      position: absolute;
+      z-index: 40;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.42);
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: 820px;
+      height: 510px;
+      background: #fff;
+      border: 1px solid var(--border-strong);
+      border-radius: 3px;
+      box-shadow: 0 18px 48px rgba(0,0,0,.28);
+    }
+    .modal-head { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; color: #fff; background: #161616; }
+    .modal-head h2 { margin: 0; font-size: 16px; }
+    .modal-head button { color: #fff; }
+    .modal-body { height: 458px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 14px; padding: 16px; }
+    .modal-section h3 { margin: 0 0 9px; font-size: 13px; }
+    .raw-table { margin-top: 13px; }
+    .raw-table td { height: 30px; }
+
+    .toast {
+      position: absolute;
+      z-index: 50;
+      right: 14px;
+      bottom: 14px;
+      min-width: 220px;
+      padding: 10px 12px;
+      color: #fff;
+      background: #242424;
+      border-left: 3px solid var(--eds-blue);
+      border-radius: 2px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: .15s;
+      pointer-events: none;
+      font-size: 10px;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="viewport">
+    <main class="report" id="report">
+      <header class="product-bar">
+        <div class="brand-mark" aria-label="Ericsson">
+          <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <rect x="7" y="6" width="19" height="4" rx="2" transform="rotate(-18 7 6)" fill="#fff"/>
+            <rect x="7" y="14" width="19" height="4" rx="2" transform="rotate(-18 7 14)" fill="#fff"/>
+            <rect x="7" y="22" width="19" height="4" rx="2" transform="rotate(-18 7 22)" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="product-name">Transport Pulse</div>
+        <div class="page-context"><strong id="page-title">Daily Control</strong><span class="divider">|</span><span>GSU MNEA Operation-Distribution</span></div>
+        <div class="bar-actions">
+          <span class="bar-note">Refreshed 10 Jun 2026, 08:30 CST</span>
+          <button class="text-btn" id="reset-filters" type="button">Reset filters</button>
+          <button class="icon-btn" id="open-filters" type="button" title="Open filters" aria-label="Open additional filters">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="control-bar">
+        <nav class="page-nav" aria-label="Report pages">
+          <button class="nav-btn active" type="button" data-page="daily"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7"/><rect x="14" y="4" width="7" height="7"/><rect x="3" y="15" width="18" height="5"/></svg>Daily Control</button>
+          <button class="nav-btn" type="button" data-page="network"><svg viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>Global Network</button>
+          <button class="nav-btn" type="button" data-page="shipments"><svg viewBox="0 0 24 24"><path d="M4 7h11v10H4zM15 10h3l3 3v4h-6z"/><circle cx="8" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>Shipment Explorer</button>
+          <button class="nav-btn" type="button" data-page="ai"><svg viewBox="0 0 24 24"><path d="M8 4h8v4H8zM6 8h12a2 2 0 0 1 2 2v9H4v-9a2 2 0 0 1 2-2Z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M9 17h6"/></svg>AI Briefing</button>
+        </nav>
+        <div class="core-filters" aria-label="Synced report filters">
+          <div class="filter-control"><label for="cu-filter">CU</label><select id="cu-filter"><option>Hong Kong</option><option>China</option><option>Japan</option><option>Korea</option><option>Taiwan</option></select></div>
+          <div class="filter-control"><label for="period-filter">Period</label><select id="period-filter"><option>2026 Q2</option><option>2026 Q3</option><option>2026 Q4</option></select></div>
+          <div class="filter-control"><label for="mode-filter">Mode</label><select id="mode-filter"><option>All modes</option><option>Sea</option><option>Air</option><option>Road</option><option>Courier</option></select></div>
+        </div>
+      </section>
+
+      <section class="page active" id="daily">
+        <div class="kpi-row">
+          <div class="kpi bad"><span class="kpi-label">On-time delivery</span><strong class="kpi-value">69.6%</strong><span class="kpi-change down">-3.1 pts vs target</span></div>
+          <div class="kpi warn"><span class="kpi-label">Delayed shipments</span><strong class="kpi-value">21</strong><span class="kpi-change down">+5 this week</span></div>
+          <div class="kpi"><span class="kpi-label">In transit</span><strong class="kpi-value">11</strong><span class="kpi-change">4 need review</span></div>
+          <div class="kpi bad"><span class="kpi-label">Lead-time variance</span><strong class="kpi-value">+2.4d</strong><span class="kpi-change down">Sea lanes driving</span></div>
+          <div class="kpi good"><span class="kpi-label">P44 coverage</span><strong class="kpi-value">74%</strong><span class="kpi-change up">+8 pts vs May</span></div>
+        </div>
+
+        <div class="daily-grid">
+          <div class="daily-main">
+            <section class="section">
+              <div class="section-head"><span class="section-title">Exception Queue</span><span class="section-note">Prioritized by severity, account impact and delay exposure</span></div>
+              <div class="exception-table">
+                <table>
+                  <thead><tr><th>Severity</th><th>Lane / port</th><th>Risk cause</th><th>Impacted</th><th>Account / product</th><th>Recommended action</th></tr></thead>
+                  <tbody>
+                    <tr class="selected exception-row" data-lane-id="eu-hk"><td><span class="severity high">High</span></td><td><span class="lane-name">Europe -> Hong Kong</span><span class="subtext">Piraeus / Milan corridor</span></td><td>Port and rail disruption</td><td><strong>14</strong> shipments</td><td>Major HK account<span class="subtext">Radio units</span></td><td><span class="action-link">Review exceptions</span></td></tr>
+                    <tr class="exception-row" data-lane-id="intra-asia"><td><span class="severity high">High</span></td><td><span class="lane-name">Sea - Intra Asia</span><span class="subtext">Nansha / Hong Kong</span></td><td>Capacity increasing</td><td><strong>18</strong> shipments</td><td>3 accounts<span class="subtext">Antenna + radio</span></td><td><span class="action-link">Confirm capacity</span></td></tr>
+                    <tr class="exception-row" data-lane-id="road-cn-hk"><td><span class="severity medium">Medium</span></td><td><span class="lane-name">Road - CN/HK</span><span class="subtext">South China corridor</span></td><td>Border dwell time</td><td><strong>9</strong> shipments</td><td>HK key account<span class="subtext">Baseband</span></td><td><span class="action-link">Check priority SOs</span></td></tr>
+                    <tr class="exception-row" data-lane-id="air-cross"><td><span class="severity medium">Medium</span></td><td><span class="lane-name">Air - Cross Region</span><span class="subtext">EU / Asia hubs</span></td><td>P44 location pending</td><td><strong>4</strong> shipments</td><td>2 accounts<span class="subtext">High-value parts</span></td><td><span class="action-link">Validate ETA source</span></td></tr>
+                    <tr class="exception-row" data-lane-id="courier"><td><span class="severity low">Low</span></td><td><span class="lane-name">Courier - Asia</span><span class="subtext">Regional express</span></td><td>No material exception</td><td><strong>5</strong> shipments</td><td>Standard orders<span class="subtext">Spare parts</span></td><td><span class="action-link">Monitor only</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <div class="daily-support">
+              <section class="section">
+                <div class="section-head"><span class="section-title">LSP Performance</span><span class="section-note">OTD / delayed shipments</span></div>
+                <div class="lsp-list">
+                  <div class="lsp-row"><strong>LSP A</strong><div class="mini-bar"><span class="good" style="width:88%"></span></div><strong>88%</strong><span class="lsp-delay">2 delayed</span></div>
+                  <div class="lsp-row"><strong>LSP B</strong><div class="mini-bar"><span class="warn" style="width:76%"></span></div><strong>76%</strong><span class="lsp-delay">5 delayed</span></div>
+                  <div class="lsp-row"><strong>LSP C</strong><div class="mini-bar"><span class="bad" style="width:64%"></span></div><strong>64%</strong><span class="lsp-delay">8 delayed</span></div>
+                  <div class="lsp-row"><strong>LSP D</strong><div class="mini-bar"><span class="good" style="width:91%"></span></div><strong>91%</strong><span class="lsp-delay">1 delayed</span></div>
+                </div>
+              </section>
+
+              <section class="section">
+                <div class="section-head"><span class="section-title">Spot News</span><span class="section-note">Location-linked signals</span></div>
+                <div class="spot-news-compact">
+                  <button class="spot-news-row" type="button" data-lane-id="eu-hk"><i></i><span class="spot-news-copy"><strong>Piraeus / European ports</strong><span>Reliability pressure and inland rail disruption</span></span><span class="spot-news-risk">High</span></button>
+                  <button class="spot-news-row" type="button" data-lane-id="eu-cn"><i style="background:#e79a28"></i><span class="spot-news-copy"><strong>Milan-Genoa corridor</strong><span>Rail disruption may affect connections</span></span><span class="spot-news-risk">Medium</span></button>
+                  <button class="spot-news-row" type="button" data-lane-id="intra-asia"><i style="background:#229d60"></i><span class="spot-news-copy"><strong>Nansha Port</strong><span>Expansion supports long-term capacity</span></span><span class="spot-news-risk">Watch</span></button>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div class="daily-side">
+            <section class="section">
+              <div class="section-head"><span class="section-title">Global Network Snapshot</span><button class="link-btn" type="button" data-go="network">Open network</button></div>
+              <div class="map-brief">
+                <svg viewBox="0 0 500 210" role="img" aria-label="World map snapshot with air, sea and road lanes from Europe to MNEA">
+                  <image class="world-map-base" href="transport_pulse_world_map_light.svg" x="0" y="0" width="500" height="210"/>
+                  <g transform="scale(.5556 .5833)">
+                    <path class="snapshot-risk-halo mode-sea" d="M466 72 C430 100 404 146 407 190 C410 235 452 260 480 256 C550 248 600 205 635 174 C645 160 649 142 648 131"/>
+                    <path d="M466 72 C430 100 404 146 407 190 C410 235 452 260 480 256 C550 248 600 205 635 174 C645 160 649 142 648 131" class="snapshot-route mode-sea" stroke-width="4" data-go="network"/>
+                    <path d="M444 94 C420 122 403 158 410 199 C420 238 456 260 480 256 C553 249 610 202 635 174 C650 154 655 129 656 113" class="snapshot-route mode-sea" stroke-width="2.6" data-go="network"/>
+                    <path d="M477 55 Q580 34 681 103" class="snapshot-route mode-air" stroke-width="2.2" data-go="network"/>
+                    <path d="M487 58 Q580 49 656 113" class="snapshot-route mode-air" stroke-width="1.8" data-go="network"/>
+                    <path d="M656 113 L648 131" class="snapshot-route mode-road" stroke-width="3" data-go="network"/>
+                    <path d="M656 113 Q646 142 631 169" class="snapshot-route mode-road" stroke-width="3" data-go="network"/>
+                    <circle class="snapshot-marker origin-marker" cx="466" cy="72" r="5"/><circle class="snapshot-marker origin-marker" cx="444" cy="94" r="5"/>
+                    <circle class="snapshot-marker destination-marker" cx="656" cy="113" r="6"/><circle class="snapshot-marker destination-marker" cx="648" cy="131" r="6"/>
+                    <circle class="snapshot-marker destination-marker" cx="681" cy="103" r="6"/><circle class="snapshot-marker destination-marker" cx="631" cy="169" r="6"/>
+                    <rect class="news-marker" x="459" y="84" width="10" height="10" rx="1"/><rect class="news-marker" x="648" y="125" width="10" height="10" rx="1"/>
+                  </g>
+                </svg>
+                <div class="snapshot-legend"><span><i style="background:#18864f"></i>Air</span><span><i style="background:#1677d2"></i>Sea</span><span><i style="background:#cf7200"></i>Road</span><span><i style="width:7px;height:7px;background:#161616"></i>News</span></div>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-head"><span class="section-title">Top 5 Risk Lanes</span><span class="section-note">Risk score</span></div>
+              <div class="mini-lanes">
+                <div class="mini-lane"><span>Europe -> HK</span><div class="mini-bar"><span style="width:92%"></span></div><strong>92</strong></div>
+                <div class="mini-lane"><span>Sea - Intra Asia</span><div class="mini-bar"><span style="width:81%"></span></div><strong>81</strong></div>
+                <div class="mini-lane"><span>Road - CN/HK</span><div class="mini-bar"><span style="width:63%"></span></div><strong>63</strong></div>
+                <div class="mini-lane"><span>Air - Cross Region</span><div class="mini-bar"><span style="width:48%"></span></div><strong>48</strong></div>
+                <div class="mini-lane"><span>Courier - Asia</span><div class="mini-bar"><span style="width:24%"></span></div><strong>24</strong></div>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-head"><span class="section-title">AI Brief</span><span class="section-note">Selected scope</span></div>
+              <div class="ai-brief"><p>Sea-lane exceptions are the main risk today. Prioritize 14 Europe-to-Hong Kong shipments and validate four fallback ETAs.</p><div class="ai-actions"><button class="link-btn primary" type="button" data-go="ai">View briefing</button><button class="link-btn" type="button" data-go="shipments">View shipments</button></div></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="network">
+        <div class="network-grid">
+          <section class="section network-map">
+            <div class="map-toolbar" aria-label="Azure Maps layer controls">
+              <button class="layer-btn active" type="button" data-layer="air">Air</button>
+              <button class="layer-btn active" type="button" data-layer="sea">Sea</button>
+              <button class="layer-btn active" type="button" data-layer="road">Road</button>
+              <button class="layer-btn active" type="button" data-layer="locations">Locations</button>
+              <button class="layer-btn active" type="button" data-layer="news">Spot News</button>
+              <button class="layer-btn" type="button" data-layer="p44">P44</button>
+            </div>
+            <div class="map-kpis" aria-label="Network summary">
+              <div class="map-kpi"><span>In transit</span><strong>11</strong></div>
+              <div class="map-kpi"><span>Active lanes</span><strong>10</strong></div>
+              <div class="map-kpi"><span>Watch</span><strong>4</strong></div>
+            </div>
+            <svg viewBox="0 0 900 360" role="img" aria-label="World map showing air, sea and road transport lanes between global origins and MNEA destinations">
+              <defs>
+                <marker id="arrow-air" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#18864f"/></marker>
+                <marker id="arrow-sea" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#1677d2"/></marker>
+                <marker id="arrow-road" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#cf7200"/></marker>
+              </defs>
+              <image class="world-map-base" href="transport_pulse_world_map_light.svg" x="0" y="0" width="900" height="360"/>
+
+              <path class="route-risk-halo mode-sea" d="M466 72 C430 100 404 146 407 190 C410 235 452 260 480 256 C550 248 600 205 635 174 C645 160 649 142 648 131"/>
+              <path class="route-risk-halo mode-sea" d="M444 94 C420 122 403 158 410 199 C420 238 456 260 480 256 C553 249 610 202 635 174 C650 154 655 129 656 113"/>
+              <path class="route-risk-halo mode-sea" d="M656 113 Q660 104 663 103"/>
+
+              <g class="mode-sea">
+                <path d="M466 72 C430 100 404 146 407 190 C410 235 452 260 480 256 C550 248 600 205 635 174 C645 160 649 142 648 131" class="transport-route map-route mode-sea selected" data-lane-id="eu-hk" stroke-width="3" marker-end="url(#arrow-sea)" tabindex="0"/>
+                <path d="M444 94 C420 122 403 158 410 199 C420 238 456 260 480 256 C553 249 610 202 635 174 C650 154 655 129 656 113" class="transport-route map-route mode-sea" data-lane-id="eu-cn" stroke-width="2.2" marker-end="url(#arrow-sea)" tabindex="0"/>
+                <path d="M444 94 C416 126 403 166 412 205 C424 242 456 259 480 256 C550 249 604 206 635 174 C646 157 649 143 648 131" class="transport-route map-route mode-sea" data-lane-id="sea-cross" stroke-width="2.2" marker-end="url(#arrow-sea)" tabindex="0"/>
+                <path d="M656 113 Q670 118 660 129" class="transport-route map-route mode-sea" data-lane-id="asia-taiwan" stroke-width="2.4" marker-end="url(#arrow-sea)" tabindex="0"/>
+                <path d="M656 113 Q660 104 663 103" class="transport-route map-route mode-sea" data-lane-id="intra-asia" stroke-width="2" marker-end="url(#arrow-sea)" tabindex="0"/>
+              </g>
+
+              <g class="mode-air">
+                <path d="M477 55 Q580 34 681 103" class="transport-route map-route mode-air" data-lane-id="air-cross" stroke-width="1.8" marker-end="url(#arrow-air)" tabindex="0"/>
+                <path d="M477 55 Q566 43 663 103" class="transport-route map-route mode-air" data-lane-id="air-cross" stroke-width="1.6" marker-end="url(#arrow-air)" tabindex="0"/>
+                <path d="M487 58 Q580 49 656 113" class="transport-route map-route mode-air" data-lane-id="air-cross" stroke-width="1.6" marker-end="url(#arrow-air)" tabindex="0"/>
+                <path d="M480 71 Q570 67 660 129" class="transport-route map-route mode-air" data-lane-id="air-cross" stroke-width="1.6" marker-end="url(#arrow-air)" tabindex="0"/>
+                <path d="M656 113 Q670 94 681 103" class="transport-route map-route mode-air" data-lane-id="asia-japan" stroke-width="2" marker-end="url(#arrow-air)" tabindex="0"/>
+              </g>
+
+              <g class="mode-road">
+                <path d="M656 113 L648 131" class="transport-route map-route mode-road" data-lane-id="road-cn-hk" stroke-width="2.5" marker-end="url(#arrow-road)" tabindex="0"/>
+                <path d="M656 113 Q646 142 631 169" class="transport-route map-route mode-road" data-lane-id="south-cn" stroke-width="2.5" marker-end="url(#arrow-road)" tabindex="0"/>
+              </g>
+
+              <g class="route-count map-route mode-sea selected" data-lane-id="eu-hk" tabindex="0" transform="translate(545 221)"><rect x="-18" y="-9" width="36" height="17" rx="8"/><text y="3">14</text></g>
+              <g class="route-count map-route mode-sea" data-lane-id="sea-cross" tabindex="0" transform="translate(505 249)"><rect x="-15" y="-9" width="30" height="17" rx="8"/><text y="3">8</text></g>
+              <g class="route-count map-route mode-air" data-lane-id="air-cross" tabindex="0" transform="translate(570 59)"><rect x="-15" y="-9" width="30" height="17" rx="8"/><text y="3">7</text></g>
+              <g class="route-count map-route mode-road" data-lane-id="south-cn" tabindex="0" transform="translate(646 151)"><rect x="-17" y="-9" width="34" height="17" rx="8"/><text y="3">10</text></g>
+
+              <g class="map-port" data-tooltip="Global origins|Germany, Spain, Sweden, Estonia and Poland">
+                <circle class="network-location origin-marker" cx="466" cy="72" r="4"/><circle class="network-location origin-marker" cx="444" cy="94" r="4"/>
+                <circle class="network-location origin-marker" cx="477" cy="55" r="4"/><circle class="network-location origin-marker" cx="487" cy="58" r="4"/>
+                <circle class="network-location origin-marker" cx="480" cy="71" r="4"/>
+                <text class="location-label" x="453" y="65">EU origins</text>
+              </g>
+              <g class="map-port" data-tooltip="MNEA destinations|China, Hong Kong, Taiwan, Korea, Japan and Malaysia">
+                <circle class="network-location destination-marker" cx="656" cy="113" r="5"/><circle class="network-location destination-marker" cx="648" cy="131" r="5"/>
+                <circle class="network-location destination-marker" cx="660" cy="129" r="5"/><circle class="network-location destination-marker" cx="663" cy="103" r="5"/>
+                <circle class="network-location destination-marker" cx="681" cy="103" r="5"/><circle class="network-location destination-marker" cx="631" cy="169" r="5"/>
+                <text class="location-label" x="624" y="117">China</text><text class="location-label" x="619" y="145">Hong Kong</text>
+                <text class="location-label" x="665" y="145">Taiwan</text><text class="location-label" x="649" y="88">Korea</text>
+                <text class="location-label" x="681" y="88">Japan</text><text class="location-label" x="607" y="181">Malaysia</text>
+              </g>
+              <text class="location-label map-port" x="501" y="138">Red Sea</text><text class="location-label map-port" x="457" y="270">Cape route</text>
+
+              <rect class="news-marker map-news" data-tooltip="European ports|Reliability pressure and Milan-Genoa rail disruption" x="459" y="84" width="10" height="10" rx="1"/>
+              <rect class="news-marker map-news" data-tooltip="Red Sea corridor|Capacity and route-diversion watch" x="511" y="129" width="10" height="10" rx="1"/>
+              <rect class="news-marker map-news" data-tooltip="Nansha / South China|Capacity expansion and regional port outlook" x="648" y="125" width="10" height="10" rx="1"/>
+
+              <circle class="p44-marker" style="opacity:0" cx="520" cy="240" r="4" data-tooltip="P44 position|Latest connected sea shipment location"/>
+              <circle class="p44-marker" style="opacity:0" cx="590" cy="64" r="4" data-tooltip="P44 position|Latest connected air shipment location"/>
+              <circle class="p44-marker" style="opacity:0" cx="642" cy="151" r="4" data-tooltip="P44 position|Latest connected road shipment location"/>
+            </svg>
+            <div class="map-legend"><span class="legend-item"><i class="legend-line" style="background:#18864f"></i>Air</span><span class="legend-item"><i class="legend-line" style="background:#1677d2"></i>Sea</span><span class="legend-item"><i class="legend-line" style="background:#cf7200"></i>Road</span><span class="legend-item"><i class="legend-line" style="height:6px;background:rgba(220,61,82,.35)"></i>High-risk halo</span><span class="legend-item"><i class="legend-count">14</i>In transit</span><span class="legend-item"><i style="width:8px;height:8px;background:#161616;display:inline-block"></i>Spot News</span></div>
+          </section>
+
+          <aside class="section inspector">
+            <div class="section-head"><span class="section-title">Selected Network Object</span><span class="section-note">Cross-filtered</span></div>
+            <div class="inspector-body">
+              <div class="object-type">High-risk lane</div>
+              <div class="object-title" id="object-title">Europe -> Hong Kong</div>
+              <p class="object-summary" id="object-summary">Port and inland rail disruption create the largest current exception cluster.</p>
+              <div class="metric-grid">
+                <div class="metric"><span>Standard lead time</span><strong id="metric-standard">61.0d</strong></div>
+                <div class="metric"><span>Actual lead time</span><strong id="metric-actual">68.5d</strong></div>
+                <div class="metric"><span>Variance</span><strong id="metric-variance" style="color:#c6283d">+7.5d</strong></div>
+                <div class="metric"><span>Capacity</span><strong id="metric-capacity">Constrained</strong></div>
+                <div class="metric"><span>Delayed</span><strong id="metric-delayed">6 / 14</strong></div>
+                <div class="metric"><span>P44 availability</span><strong id="metric-p44">Pending</strong></div>
+              </div>
+              <div class="inspector-block"><h4>Related Spot News</h4><p id="object-news">European port and Milan-Genoa rail disruption.</p></div>
+              <div class="inspector-block"><h4>Recommended action</h4><p id="object-action">Review high-value shipments and confirm fallback ETA with the responsible team.</p></div>
+              <div class="ai-actions" style="margin-top:10px"><button class="link-btn primary" type="button" data-go="shipments">View shipments</button><button class="link-btn" type="button" data-go="ai">Open AI brief</button></div>
+            </div>
+          </aside>
+
+          <section class="section lane-matrix">
+            <div class="section-head"><span class="section-title">Top 10 Lanes</span><span class="section-note">Standard vs actual lead time, capacity and risk</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Lane</th><th>Mode</th><th>Std LT</th><th>Actual LT</th><th>Variance</th><th>Shipments</th><th>Delayed</th><th>Capacity</th><th>Risk</th></tr></thead><tbody>
+              <tr class="lane-row selected" data-lane-id="eu-hk"><td><span class="lane-name">Europe -> Hong Kong</span></td><td>Sea</td><td>61.0</td><td>68.5</td><td>+7.5</td><td>14</td><td>6</td><td>Constrained</td><td><span class="severity high">High</span></td></tr>
+              <tr class="lane-row" data-lane-id="intra-asia"><td><span class="lane-name">Sea - Intra Asia</span></td><td>Sea</td><td>24.5</td><td>28.5</td><td>+4.0</td><td>18</td><td>5</td><td>Increasing</td><td><span class="severity high">High</span></td></tr>
+              <tr class="lane-row" data-lane-id="road-cn-hk"><td><span class="lane-name">Road - CN/HK</span></td><td>Road</td><td>10.5</td><td>12.0</td><td>+1.5</td><td>9</td><td>2</td><td>Stable</td><td><span class="severity medium">Medium</span></td></tr>
+              <tr class="lane-row" data-lane-id="air-cross"><td><span class="lane-name">Air - Cross Region</span></td><td>Air</td><td>7.6</td><td>5.6</td><td>-2.0</td><td>7</td><td>0</td><td>Stable</td><td><span class="severity low">Low</span></td></tr>
+              <tr class="lane-row" data-lane-id="courier"><td><span class="lane-name">Courier - Asia</span></td><td>Courier</td><td>6.4</td><td>5.8</td><td>-0.6</td><td>5</td><td>0</td><td>Stable</td><td><span class="severity low">Low</span></td></tr>
+              <tr class="lane-row" data-lane-id="asia-taiwan"><td><span class="lane-name">Asia -> Taiwan</span></td><td>Sea</td><td>18.0</td><td>19.4</td><td>+1.4</td><td>12</td><td>2</td><td>Stable</td><td><span class="severity medium">Medium</span></td></tr>
+              <tr class="lane-row" data-lane-id="sea-cross"><td><span class="lane-name">Sea - Cross Region</span></td><td>Sea</td><td>69.0</td><td>68.5</td><td>-0.5</td><td>8</td><td>1</td><td>Increasing</td><td><span class="severity medium">Medium</span></td></tr>
+              <tr class="lane-row" data-lane-id="eu-cn"><td><span class="lane-name">Europe -> China</span></td><td>Sea</td><td>31.0</td><td>34.2</td><td>+3.2</td><td>6</td><td>2</td><td>Constrained</td><td><span class="severity high">High</span></td></tr>
+              <tr class="lane-row" data-lane-id="asia-japan"><td><span class="lane-name">Asia -> Japan</span></td><td>Air</td><td>6.8</td><td>7.4</td><td>+0.6</td><td>11</td><td>1</td><td>Stable</td><td><span class="severity low">Low</span></td></tr>
+              <tr class="lane-row" data-lane-id="south-cn"><td><span class="lane-name">Road - South China</span></td><td>Road</td><td>8.0</td><td>9.1</td><td>+1.1</td><td>10</td><td>2</td><td>Stable</td><td><span class="severity medium">Medium</span></td></tr>
+            </tbody></table></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="page" id="shipments">
+        <div class="shipment-search"><input id="shipment-search" aria-label="Search shipment or sales order" placeholder="Search shipment or sales order"/><select aria-label="Account filter"><option>All accounts</option><option>Major HK account</option><option>Taiwan key account</option></select><select aria-label="Product filter"><option>All products</option><option>Radio unit</option><option>Antenna</option><option>Baseband</option></select><select aria-label="Status filter"><option>All status</option><option>Delayed</option><option>In transit</option><option>On track</option></select><button class="link-btn primary" type="button" id="apply-shipment-filter">Apply</button></div>
+        <div class="shipment-grid">
+          <section class="section shipment-list">
+            <div class="section-head"><span class="section-title">Impacted Shipments</span><span class="section-note">SO, product and account context included</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Shipment</th><th>Sales order</th><th>Product</th><th>Account</th><th>Lane</th><th>Mode</th><th>Status</th><th>ETA</th><th>ETA source</th><th>P44</th><th>Risk</th></tr></thead><tbody>
+              <tr class="shipment-row selected" data-shipment="6200119727"><td><span class="shipment-id">6200119727</span></td><td>SO-442917</td><td>Radio unit</td><td>Major HK account</td><td>EU -> HK</td><td>Sea</td><td><span class="status-text delayed">Delayed</span></td><td>18 Jun</td><td>Dashboard</td><td>Pending</td><td><span class="severity high">High</span></td></tr>
+              <tr class="shipment-row" data-shipment="6200117472"><td><span class="shipment-id">6200117472</span></td><td>SO-442903</td><td>Antenna</td><td>HK network team</td><td>Cross Region</td><td>Sea</td><td><span class="status-text delayed">Delayed</span></td><td>20 Jun</td><td>P44 ETA</td><td>Connected</td><td><span class="severity high">High</span></td></tr>
+              <tr class="shipment-row" data-shipment="6200119716"><td><span class="shipment-id">6200119716</span></td><td>SO-442921</td><td>Baseband</td><td>Major CN customer</td><td>Air Cross</td><td>Air</td><td><span class="status-text track">On track</span></td><td>14 Jun</td><td>Dashboard</td><td>Pending</td><td><span class="severity medium">Medium</span></td></tr>
+              <tr class="shipment-row" data-shipment="6200119934"><td><span class="shipment-id">6200119934</span></td><td>SO-442945</td><td>Radio unit</td><td>Taiwan key account</td><td>Asia -> TW</td><td>Air</td><td><span class="status-text track">On track</span></td><td>13 Jun</td><td>P44 ETA</td><td>Connected</td><td><span class="severity low">Low</span></td></tr>
+              <tr class="shipment-row" data-shipment="6200120004"><td><span class="shipment-id">6200120004</span></td><td>SO-442958</td><td>Spare parts</td><td>HK operations</td><td>Road CN/HK</td><td>Road</td><td><span class="status-text delayed">Delayed</span></td><td>16 Jun</td><td>Dashboard</td><td>Pending</td><td><span class="severity medium">Medium</span></td></tr>
+              <tr class="shipment-row" data-shipment="6200120128"><td><span class="shipment-id">6200120128</span></td><td>SO-442971</td><td>Antenna</td><td>Japan key account</td><td>Intra Asia</td><td>Sea</td><td><span class="status-text delayed">Delayed</span></td><td>22 Jun</td><td>P44 ETA</td><td>Connected</td><td><span class="severity high">High</span></td></tr>
+              <tr class="shipment-row" data-shipment="6200120199"><td><span class="shipment-id">6200120199</span></td><td>SO-442980</td><td>Radio unit</td><td>Korea account</td><td>Courier Asia</td><td>Courier</td><td><span class="status-text track">On track</span></td><td>12 Jun</td><td>P44 ETA</td><td>Connected</td><td><span class="severity low">Low</span></td></tr>
+              <tr class="shipment-row" data-shipment="6200120277"><td><span class="shipment-id">6200120277</span></td><td>SO-443004</td><td>Baseband</td><td>Major HK account</td><td>EU -> HK</td><td>Sea</td><td><span class="status-text delayed">Delayed</span></td><td>21 Jun</td><td>Dashboard</td><td>Pending</td><td><span class="severity high">High</span></td></tr>
+            </tbody></table></div>
+          </section>
+
+          <aside class="section shipment-detail">
+            <div class="section-head"><span class="section-title">Selected Shipment</span><span class="section-note">Drill-through context</span></div>
+            <div class="detail-body">
+              <div class="detail-id">High risk</div><div class="detail-title" id="detail-shipment">6200119727</div><div class="detail-subtitle" id="detail-so">SO-442917 | Radio unit | Major HK account</div>
+              <div class="detail-meta"><div><span>Status</span><strong id="detail-status">Delayed</strong></div><div><span>ETA</span><strong id="detail-eta">18 Jun 2026</strong></div><div><span>ETA source</span><strong id="detail-source">ETA from dashboard data</strong></div><div><span>P44</span><strong id="detail-p44">P44 location pending</strong></div><div><span>Lane</span><strong id="detail-lane">Europe -> Hong Kong</strong></div><div><span>Mode</span><strong id="detail-mode">Sea</strong></div></div>
+              <div class="timeline"><div class="event"><strong>Shipment created</strong>Estonia origin, sea lane confirmed.</div><div class="event"><strong>Departed origin</strong>Fallback ETA available.</div><div class="event warn"><strong>Risk linked</strong>Port and rail Spot News overlap.</div><div class="event warn"><strong>Action required</strong>Confirm account impact and revised ETA.</div></div>
+              <div class="detail-actions"><button class="link-btn primary" id="open-detail" type="button">Open drill-through</button><button class="link-btn" type="button" data-go="network">View lane</button></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="page" id="ai">
+        <div class="scope-strip"><div class="scope-item"><span>CU</span><strong id="scope-cu">Hong Kong</strong></div><div class="scope-item"><span>Period</span><strong id="scope-period">2026 Q2</strong></div><div class="scope-item"><span>Mode</span><strong id="scope-mode">All modes</strong></div><div class="scope-item"><span>Shipment scope</span><strong>80 shipments</strong></div></div>
+        <div class="ai-grid">
+          <div class="ai-narratives">
+            <article class="narrative"><span class="narrative-label">What changed</span><h3>Sea exceptions increased</h3><p>Delayed shipments rose by five this week. Europe-to-Hong Kong and Intra-Asia lanes account for most of the increase.</p><button class="link-btn" type="button" data-go="network">Open network</button></article>
+            <article class="narrative"><span class="narrative-label">Why it matters</span><h3>Customer impact is concentrated</h3><p>Fourteen high-risk shipments include priority sales orders for a major Hong Kong account and radio products.</p><button class="link-btn" type="button" data-go="shipments">See impacted shipments</button></article>
+            <article class="narrative"><span class="narrative-label">Recommended actions</span><h3>Focus on two follow-ups</h3><p>Confirm constrained sea capacity and validate dashboard ETAs for four shipments where P44 location is still pending.</p><button class="link-btn primary" type="button" data-go="daily">Return to exceptions</button></article>
+          </div>
+          <div class="evidence-grid">
+            <section class="section"><div class="section-head"><span class="section-title">KPI Delta</span><span class="section-note">vs previous period</span></div><div class="delta-list"><div class="delta-row"><span>On-time delivery</span><strong class="bad">-3.1 pts</strong></div><div class="delta-row"><span>Delayed shipments</span><strong class="bad">+5</strong></div><div class="delta-row"><span>P44 coverage</span><strong class="good">+8 pts</strong></div><div class="delta-row"><span>Average delay</span><strong class="bad">+0.6d</strong></div></div></section>
+            <section class="section"><div class="section-head"><span class="section-title">Top Risk Lanes</span><span class="section-note">AI supporting evidence</span></div><div class="risk-bars"><div class="risk-bar"><span>Europe -> Hong Kong</span><div class="bar-track"><span style="width:92%"></span></div><strong>92</strong></div><div class="risk-bar"><span>Sea - Intra Asia</span><div class="bar-track"><span style="width:81%"></span></div><strong>81</strong></div><div class="risk-bar"><span>Road - CN/HK</span><div class="bar-track"><span style="width:63%"></span></div><strong>63</strong></div><div class="risk-bar"><span>Air - Cross Region</span><div class="bar-track"><span style="width:48%"></span></div><strong>48</strong></div></div></section>
+            <section class="section"><div class="section-head"><span class="section-title">Spot News Locations</span><span class="section-note">3 linked signals</span></div><div class="news-list"><div class="news-item"><i class="news-dot"></i><div><strong>Piraeus / European ports</strong><span>Reliability and competitiveness pressure</span></div><span>High</span></div><div class="news-item"><i class="news-dot" style="background:#e79a28"></i><div><strong>Milan-Genoa corridor</strong><span>Rail disruption affects inland connection</span></div><span>Medium</span></div><div class="news-item"><i class="news-dot" style="background:#229d60"></i><div><strong>Nansha Port</strong><span>Expansion supports long-term capacity</span></div><span>Watch</span></div><div class="news-item"><i class="news-dot" style="background:#0082f0"></i><div><strong>Hong Kong Hub</strong><span>14 selected shipments in scope</span></div><span>Linked</span></div></div></section>
+          </div>
+        </div>
+      </section>
+
+      <aside class="filter-drawer" id="filter-drawer" aria-hidden="true">
+        <div class="drawer-head"><h2>Additional filters</h2><button class="close-btn" id="close-filters" type="button" aria-label="Close filters">x</button></div>
+        <div class="drawer-filter"><label for="origin-filter">Origin</label><select id="origin-filter"><option>All origins</option><option>Europe</option><option>Asia</option><option>Americas</option></select></div>
+        <div class="drawer-filter"><label for="flow-filter">Flow</label><select id="flow-filter"><option>All flows</option><option>Inbound</option><option>Outbound</option></select></div>
+        <div class="drawer-filter"><label for="p44-filter">P44 availability</label><select id="p44-filter"><option>All P44 status</option><option>Connected</option><option>Pending</option></select></div>
+        <div class="drawer-filter"><label for="drawer-shipment">Shipment number</label><input id="drawer-shipment" placeholder="Enter shipment number" /></div>
+        <div class="drawer-filter"><label for="drawer-account">Account</label><select id="drawer-account"><option>All accounts</option><option>Major HK account</option><option>Taiwan key account</option></select></div>
+        <div class="drawer-filter"><label for="drawer-product">Product</label><select id="drawer-product"><option>All products</option><option>Radio unit</option><option>Antenna</option><option>Baseband</option><option>Spare parts</option></select></div>
+        <div class="drawer-footer"><button class="link-btn" id="clear-drawer" type="button">Clear</button><button class="link-btn primary" id="apply-drawer" type="button">Apply filters</button></div>
+      </aside>
+
+      <div class="tooltip" id="map-tooltip"><strong></strong><span></span></div>
+
+      <div class="modal-backdrop" id="detail-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal"><div class="modal-head"><h2 id="modal-title">Shipment Detail - 6200119727</h2><button class="close-btn" id="close-modal" type="button" aria-label="Close shipment detail">x</button></div><div class="modal-body"><section class="modal-section"><h3>Shipment, order and customer context</h3><div class="detail-meta" style="grid-template-columns:repeat(3,1fr)"><div><span>Shipment</span><strong id="modal-shipment">6200119727</strong></div><div><span>Sales order</span><strong id="modal-so">SO-442917</strong></div><div><span>Product</span><strong id="modal-product">Radio unit</strong></div><div><span>Account</span><strong id="modal-account">Major HK account</strong></div><div><span>Origin</span><strong id="modal-origin">Estonia</strong></div><div><span>Destination</span><strong id="modal-destination">Hong Kong</strong></div><div><span>Current status</span><strong id="modal-status">Delayed</strong></div><div><span>ETA source</span><strong id="modal-source">Dashboard data</strong></div><div><span>P44</span><strong id="modal-p44">Location pending</strong></div></div><h3 style="margin-top:15px">Raw audit fields</h3><table class="raw-table"><tbody><tr><th>Standard LT</th><td id="modal-standard">61.0 days</td><th>Actual LT</th><td id="modal-actual">68.5 days</td></tr><tr><th>Lane risk</th><td id="modal-risk">High</td><th>Capacity</th><td id="modal-capacity">Constrained</td></tr><tr><th>News link</th><td colspan="3" id="modal-news">European port and rail disruption</td></tr></tbody></table></section><section class="modal-section"><h3>Shipment timeline</h3><div class="timeline" style="font-size:11px"><div class="event"><strong>1 Jun - Shipment created</strong>Planned shipment lane confirmed.</div><div class="event"><strong>3 Jun - Departed origin</strong>ETA source available.</div><div class="event warn"><strong>8 Jun - Risk linked</strong>Spot News or lane risk evaluated.</div><div class="event warn"><strong>10 Jun - Tracking status</strong>P44 availability checked.</div><div class="event warn"><strong>Next action</strong>Confirm account impact and updated ETA.</div></div></section></div></div>
+      </div>
+
+      <div class="toast" id="toast">Filters updated</div>
+    </main>
+  </div>
+
+  <script>
+    const pageTitles = { daily: "Daily Control", network: "Global Network", shipments: "Shipment Explorer", ai: "AI Briefing" };
+    const laneData = {
+      "eu-hk": { title: "Europe -> Hong Kong", summary: "Port and inland rail disruption create the largest current exception cluster.", standard: "61.0d", actual: "68.5d", variance: "+7.5d", capacity: "Constrained", delayed: "6 / 14", p44: "Pending", news: "European port and Milan-Genoa rail disruption.", action: "Review high-value shipments and confirm fallback ETA with the responsible team." },
+      "intra-asia": { title: "Sea - Intra Asia", summary: "Growing regional volume is creating capacity pressure around key South China ports.", standard: "24.5d", actual: "28.5d", variance: "+4.0d", capacity: "Increasing", delayed: "5 / 18", p44: "Mixed", news: "Nansha capacity expansion and regional port updates.", action: "Confirm allocation for priority orders and monitor delayed shipment cluster." },
+      "road-cn-hk": { title: "Road - CN/HK", summary: "Border dwell time is affecting a small group of priority shipments.", standard: "10.5d", actual: "12.0d", variance: "+1.5d", capacity: "Stable", delayed: "2 / 9", p44: "Pending", news: "No major external disruption; risk is shipment-specific.", action: "Review priority sales orders and validate handover timing." },
+      "air-cross": { title: "Air - Cross Region", summary: "Air performance remains faster than standard, but four locations are awaiting P44 confirmation.", standard: "7.6d", actual: "5.6d", variance: "-2.0d", capacity: "Stable", delayed: "0 / 7", p44: "Mixed", news: "No material Spot News impact.", action: "Validate P44 coverage; keep air as recovery option for urgent orders." },
+      "courier": { title: "Courier - Asia", summary: "Courier performance is stable with no material exception.", standard: "6.4d", actual: "5.8d", variance: "-0.6d", capacity: "Stable", delayed: "0 / 5", p44: "Connected", news: "No critical news linked.", action: "Monitor only." },
+      "asia-taiwan": { title: "Asia -> Taiwan", summary: "The lane is stable but remains in scope for account and product-level monitoring.", standard: "18.0d", actual: "19.4d", variance: "+1.4d", capacity: "Stable", delayed: "2 / 12", p44: "Mixed", news: "Capacity outlook stable.", action: "Review account and major product context for delayed orders." },
+      "sea-cross": { title: "Sea - Cross Region", summary: "Cross-region sea performance is close to standard with a small capacity watch.", standard: "69.0d", actual: "68.5d", variance: "-0.5d", capacity: "Increasing", delayed: "1 / 8", p44: "Mixed", news: "Regional port capacity update.", action: "Monitor priority orders and confirm allocation if volume increases." },
+      "eu-cn": { title: "Europe -> China", summary: "Rail disruption is creating a moderate lead-time increase for selected shipments.", standard: "31.0d", actual: "34.2d", variance: "+3.2d", capacity: "Constrained", delayed: "2 / 6", p44: "Pending", news: "Milan-Genoa corridor disruption may affect inland connections.", action: "Validate rail handover dates and review sea fallback for urgent orders." },
+      "asia-japan": { title: "Asia -> Japan", summary: "Performance remains near standard with one isolated shipment exception.", standard: "6.8d", actual: "7.4d", variance: "+0.6d", capacity: "Stable", delayed: "1 / 11", p44: "Connected", news: "No material external disruption linked.", action: "Monitor the isolated exception and keep the current routing plan." },
+      "south-cn": { title: "Road - South China", summary: "Border dwell time is slightly above plan across two shipments.", standard: "8.0d", actual: "9.1d", variance: "+1.1d", capacity: "Stable", delayed: "2 / 10", p44: "Pending", news: "No major Spot News signal; risk is operational.", action: "Confirm border handover timing and update dashboard ETA where needed." }
+    };
+
+    const shipmentData = {
+      "6200119727": { so: "SO-442917", product: "Radio unit", account: "Major HK account", origin: "Estonia", destination: "Hong Kong", status: "Delayed", eta: "18 Jun 2026", source: "ETA from dashboard data", p44: "P44 location pending", lane: "Europe -> Hong Kong", mode: "Sea", risk: "High risk", standard: "61.0 days", actual: "68.5 days", capacity: "Constrained", news: "European port and rail disruption" },
+      "6200117472": { so: "SO-442903", product: "Antenna", account: "HK network team", origin: "Brazil", destination: "Hong Kong", status: "Delayed", eta: "20 Jun 2026", source: "P44 ETA", p44: "P44 connected", lane: "Sea - Cross Region", mode: "Sea", risk: "High risk", standard: "69.0 days", actual: "68.5 days", capacity: "Increasing", news: "Regional port capacity update" },
+      "6200119716": { so: "SO-442921", product: "Baseband", account: "Major CN customer", origin: "Poland", destination: "China", status: "On track", eta: "14 Jun 2026", source: "ETA from dashboard data", p44: "P44 location pending", lane: "Air - Cross Region", mode: "Air", risk: "Medium risk", standard: "7.6 days", actual: "5.6 days", capacity: "Stable", news: "No material Spot News impact" },
+      "6200119934": { so: "SO-442945", product: "Radio unit", account: "Taiwan key account", origin: "Malaysia", destination: "Taiwan", status: "On track", eta: "13 Jun 2026", source: "P44 ETA", p44: "P44 connected", lane: "Asia -> Taiwan", mode: "Air", risk: "Low risk", standard: "18.0 days", actual: "19.4 days", capacity: "Stable", news: "Capacity outlook stable" },
+      "6200120004": { so: "SO-442958", product: "Spare parts", account: "HK operations", origin: "China", destination: "Hong Kong", status: "Delayed", eta: "16 Jun 2026", source: "ETA from dashboard data", p44: "P44 location pending", lane: "Road - CN/HK", mode: "Road", risk: "Medium risk", standard: "10.5 days", actual: "12.0 days", capacity: "Stable", news: "Border dwell-time watch" },
+      "6200120128": { so: "SO-442971", product: "Antenna", account: "Japan key account", origin: "China", destination: "Japan", status: "Delayed", eta: "22 Jun 2026", source: "P44 ETA", p44: "P44 connected", lane: "Sea - Intra Asia", mode: "Sea", risk: "High risk", standard: "24.5 days", actual: "28.5 days", capacity: "Increasing", news: "Nansha capacity expansion" },
+      "6200120199": { so: "SO-442980", product: "Radio unit", account: "Korea account", origin: "Hong Kong", destination: "Korea", status: "On track", eta: "12 Jun 2026", source: "P44 ETA", p44: "P44 connected", lane: "Courier - Asia", mode: "Courier", risk: "Low risk", standard: "6.4 days", actual: "5.8 days", capacity: "Stable", news: "No critical news linked" },
+      "6200120277": { so: "SO-443004", product: "Baseband", account: "Major HK account", origin: "Estonia", destination: "Hong Kong", status: "Delayed", eta: "21 Jun 2026", source: "ETA from dashboard data", p44: "P44 location pending", lane: "Europe -> Hong Kong", mode: "Sea", risk: "High risk", standard: "61.0 days", actual: "68.5 days", capacity: "Constrained", news: "European port and rail disruption" }
+    };
+
+    const report = document.getElementById("report");
+    const toast = document.getElementById("toast");
+    let toastTimer;
+
+    function fitReport() {
+      const scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+      report.style.transform = `scale(${scale})`;
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1400);
+    }
+
+    function showPage(pageId) {
+      if (!pageTitles[pageId]) return;
+      document.querySelectorAll(".page").forEach(page => page.classList.toggle("active", page.id === pageId));
+      document.querySelectorAll(".nav-btn").forEach(button => button.classList.toggle("active", button.dataset.page === pageId));
+      document.getElementById("page-title").textContent = pageTitles[pageId];
+      history.replaceState(null, "", `?page=${pageId}`);
+    }
+
+    function selectLane(laneId) {
+      const item = laneData[laneId];
+      if (!item) return;
+      document.querySelectorAll("[data-lane-id]").forEach(element => element.classList.toggle("selected", element.dataset.laneId === laneId));
+      document.getElementById("object-title").textContent = item.title;
+      document.getElementById("object-summary").textContent = item.summary;
+      document.getElementById("metric-standard").textContent = item.standard;
+      document.getElementById("metric-actual").textContent = item.actual;
+      document.getElementById("metric-variance").textContent = item.variance;
+      document.getElementById("metric-capacity").textContent = item.capacity;
+      document.getElementById("metric-delayed").textContent = item.delayed;
+      document.getElementById("metric-p44").textContent = item.p44;
+      document.getElementById("object-news").textContent = item.news;
+      document.getElementById("object-action").textContent = item.action;
+    }
+
+    function selectShipment(id) {
+      const item = shipmentData[id];
+      if (!item) return;
+      document.querySelectorAll(".shipment-row").forEach(row => row.classList.toggle("selected", row.dataset.shipment === id));
+      document.getElementById("detail-shipment").textContent = id;
+      document.getElementById("detail-so").textContent = `${item.so} | ${item.product} | ${item.account}`;
+      document.getElementById("detail-status").textContent = item.status;
+      document.getElementById("detail-eta").textContent = item.eta;
+      document.getElementById("detail-source").textContent = item.source;
+      document.getElementById("detail-p44").textContent = item.p44;
+      document.getElementById("detail-lane").textContent = item.lane;
+      document.getElementById("detail-mode").textContent = item.mode;
+      document.querySelector(".detail-id").textContent = item.risk;
+      document.getElementById("modal-title").textContent = `Shipment Detail - ${id}`;
+      document.getElementById("modal-shipment").textContent = id;
+      document.getElementById("modal-so").textContent = item.so;
+      document.getElementById("modal-product").textContent = item.product;
+      document.getElementById("modal-account").textContent = item.account;
+      document.getElementById("modal-origin").textContent = item.origin;
+      document.getElementById("modal-destination").textContent = item.destination;
+      document.getElementById("modal-status").textContent = item.status;
+      document.getElementById("modal-source").textContent = item.source;
+      document.getElementById("modal-p44").textContent = item.p44;
+      document.getElementById("modal-standard").textContent = item.standard;
+      document.getElementById("modal-actual").textContent = item.actual;
+      document.getElementById("modal-risk").textContent = item.risk.replace(" risk", "");
+      document.getElementById("modal-capacity").textContent = item.capacity;
+      document.getElementById("modal-news").textContent = item.news;
+    }
+
+    document.querySelectorAll(".nav-btn").forEach(button => button.addEventListener("click", () => showPage(button.dataset.page)));
+    document.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => showPage(button.dataset.go)));
+    document.querySelectorAll(".lane-row, .map-route, .exception-row, .spot-news-row").forEach(element => element.addEventListener("click", () => { selectLane(element.dataset.laneId); if (element.classList.contains("exception-row") || element.classList.contains("spot-news-row")) showPage("network"); }));
+    document.querySelectorAll(".map-route").forEach(element => element.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectLane(element.dataset.laneId); } }));
+    document.querySelectorAll(".shipment-row").forEach(row => row.addEventListener("click", () => selectShipment(row.dataset.shipment)));
+
+    const drawer = document.getElementById("filter-drawer");
+    function setDrawer(open) { drawer.classList.toggle("open", open); drawer.setAttribute("aria-hidden", String(!open)); }
+    document.getElementById("open-filters").addEventListener("click", () => setDrawer(true));
+    document.getElementById("close-filters").addEventListener("click", () => setDrawer(false));
+    document.getElementById("apply-drawer").addEventListener("click", () => { setDrawer(false); showToast("Additional filters applied"); });
+    document.getElementById("clear-drawer").addEventListener("click", () => { drawer.querySelectorAll("select").forEach(select => select.selectedIndex = 0); drawer.querySelectorAll("input").forEach(input => input.value = ""); showToast("Additional filters cleared"); });
+
+    const cuFilter = document.getElementById("cu-filter");
+    const periodFilter = document.getElementById("period-filter");
+    const modeFilter = document.getElementById("mode-filter");
+    function syncScope() { document.getElementById("scope-cu").textContent = cuFilter.value; document.getElementById("scope-period").textContent = periodFilter.value; document.getElementById("scope-mode").textContent = modeFilter.value; }
+    function applyModeFilter() {
+      const selectedMode = modeFilter.value.toLowerCase();
+      ["air", "sea", "road"].forEach(mode => {
+        const visible = selectedMode === "all modes" || selectedMode === mode;
+        const button = document.querySelector(`.layer-btn[data-layer="${mode}"]`);
+        button.classList.toggle("active", visible);
+        document.querySelectorAll(mapLayerSelectors[mode]).forEach(element => { element.style.opacity = visible ? "1" : "0"; element.style.pointerEvents = visible ? "auto" : "none"; });
+      });
+    }
+    [cuFilter, periodFilter, modeFilter].forEach(control => control.addEventListener("change", () => { syncScope(); if (control === modeFilter) applyModeFilter(); showToast("Synced slicers updated"); }));
+
+    document.getElementById("reset-filters").addEventListener("click", () => { cuFilter.value = "Hong Kong"; periodFilter.value = "2026 Q2"; modeFilter.value = "All modes"; drawer.querySelectorAll("select").forEach(select => select.selectedIndex = 0); drawer.querySelectorAll("input").forEach(input => input.value = ""); syncScope(); applyModeFilter(); showToast("Filters reset to report defaults"); });
+    document.getElementById("apply-shipment-filter").addEventListener("click", () => showToast("Shipment filters applied"));
+
+    const mapLayerSelectors = { air: ".mode-air", sea: ".mode-sea", road: ".mode-road", locations: ".map-port", news: ".map-news", p44: ".p44-marker" };
+    document.querySelectorAll(".layer-btn").forEach(button => button.addEventListener("click", () => {
+      button.classList.toggle("active");
+      const visible = button.classList.contains("active");
+      document.querySelectorAll(mapLayerSelectors[button.dataset.layer] || "").forEach(element => { element.style.opacity = visible ? "1" : "0"; element.style.pointerEvents = visible ? "auto" : "none"; });
+    }));
+
+    const tooltip = document.getElementById("map-tooltip");
+    document.querySelectorAll("[data-tooltip]").forEach(marker => {
+      marker.addEventListener("mouseenter", event => { const [title, copy] = marker.dataset.tooltip.split("|"); tooltip.querySelector("strong").textContent = title; tooltip.querySelector("span").textContent = copy; tooltip.style.left = `${Math.min(event.clientX + 12, 1040)}px`; tooltip.style.top = `${Math.min(event.clientY + 8, 620)}px`; tooltip.classList.add("visible"); });
+      marker.addEventListener("mouseleave", () => tooltip.classList.remove("visible"));
+    });
+
+    const modal = document.getElementById("detail-modal");
+    document.getElementById("open-detail").addEventListener("click", () => modal.classList.add("open"));
+    document.getElementById("close-modal").addEventListener("click", () => modal.classList.remove("open"));
+    modal.addEventListener("click", event => { if (event.target === modal) modal.classList.remove("open"); });
+
+    const requestedPage = new URLSearchParams(location.search).get("page") || "daily";
+    showPage(requestedPage);
+    syncScope();
+    fitReport();
+    window.addEventListener("resize", fitReport);
+  </script>
+</body>
+</html>
