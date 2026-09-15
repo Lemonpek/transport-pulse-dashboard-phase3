@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build:globe": "esbuild spot_news_globe.js --bundle --minify --format=iife --outfile=spot_news_globe.bundle.js"
+    "build": "npm run build:globe",
+    "build:globe": "esbuild spot_news_globe.js --bundle --minify --format=iife --outfile=spot_news_globe.bundle.js",
+    "start": "node server.cjs"
   },
   "dependencies": {
     "three": "0.180.0",

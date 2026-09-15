@@ -1,10 +1,25 @@
 # Transport Pulse Project Handoff
 
-Last updated: 2026-09-14
+Last updated: 2026-09-15
+
+## Zeabur Deployment Fix (15 Sep 2026)
+
+- Zeabur reported a Kubernetes `BackOff` restart after the GitHub deployment. The repository had a build-only `package.json` and no long-running production start command, so a Node container could exit immediately after startup.
+- Added `server.cjs`, a dependency-free static server that listens on `0.0.0.0` and the platform-provided `PORT`. The root URL opens `transport_pulse_phase3_eds_v2_prototype.html`, and `/healthz` returns `{"status":"ok"}`.
+- Added `npm run build`, `npm start`, and `zbpack.json` with explicit Zeabur build/start commands. Zeabur should deploy from the repository root, with no conflicting dashboard-level start-command override.
+- Clean-environment validation passed: `npm ci`, globe bundle build, JavaScript syntax check, HTTP asset/MIME checks, 404/405 checks, and Edge browser smoke QA for the Spot News 3D page and CU interactions.
+- Updated the GitHub release package with the deployment files and recovery instructions. The remote remains a placeholder, so the user must upload the refreshed package or configure the real GitHub remote before pushing.
+
+## Risk Scoring Word Document (15 Sep 2026)
+
+- Created `Transport Pulse Phase 3 Deliverables/Transport_Pulse_Risk_Scoring_Method.docx` from `RISK_SCORING_METHOD.md`.
+- Five-page English technical document covering the Spot News formula, component weights, category thresholds, worked examples, data governance rules, Power BI DAX, boundary tests, lane operational risk and implementation acceptance checks.
+- The final DOCX was exported through Microsoft Word and all five rendered pages were visually reviewed. Accessibility audit returned zero findings.
 
 ## GitHub Update Package (15 Sep 2026)
 
 - Release ZIP: `Transport Pulse Phase 3 Deliverables/transport-pulse-phase3-spot-news-3d-github-update-2026-09-15.zip`.
+- Zeabur-ready refreshed ZIP: `Transport Pulse Phase 3 Deliverables/transport-pulse-phase3-zeabur-ready-2026-09-15.zip`.
 - Unpacked review folder: `Transport Pulse Phase 3 Deliverables/GitHub Update - Spot News 3D - 2026-09-15`.
 - Added root documentation: `README.md`, `GITHUB_UPDATE_GUIDE.md`, `TRANSPORT_LANES_SUMMARY.md`, and `RISK_SCORING_METHOD.md`.
 - The package contains only the runnable prototype, required map/3D assets and source, Power BI theme/build guide, handoff notes and four QA previews. It excludes videos, personal photos, caches and temporary QA scripts.
@@ -42,9 +57,11 @@ Current in-app browser target:
 
 `http://127.0.0.1:8765/transport_pulse_phase3_eds_v2_prototype.html?page=daily`
 
-The local read-only preview server was started with:
+For the current production-style local preview, run:
 
-`python -m http.server 8765 --bind 127.0.0.1`
+`npm start`
+
+The default URL is `http://localhost:3000`; Zeabur supplies its own `PORT` value.
 
 ## User Context And Preferences
 

@@ -4,7 +4,17 @@ Transport Pulse is a Power BI-oriented control-tower prototype for daily shipmen
 
 ## Open the prototype
 
-Open `transport_pulse_phase3_eds_v2_prototype.html` in a modern browser. The prototype is self-contained and does not require a server, login or API key.
+Open `transport_pulse_phase3_eds_v2_prototype.html` in a modern browser. The prototype is self-contained and does not require a login or API key.
+
+For local HTTP preview or production hosting, run:
+
+```powershell
+npm install
+npm run build
+npm start
+```
+
+Then open `http://localhost:3000`. The server uses the platform-provided `PORT` when deployed and exposes `/healthz` for health checks.
 
 Use the top navigation to review:
 
@@ -32,6 +42,8 @@ All prototype values are illustrative demo data. The Spot News snapshot is dated
 - `spot_news_world.json` — Natural Earth country geometry used by the globe.
 - `transport_pulse_world_map_light.svg` — 2D map asset used by Daily Control and Global Network.
 - `transport_pulse_phase3_eds_light_theme.json` — Power BI light theme starter.
+- `server.cjs` — dependency-free production static server for Zeabur and local HTTP preview.
+- `zbpack.json` — explicit Zeabur build and start commands.
 
 To rebuild the globe bundle, run `npm install` and `npm run build:globe`. Dependency versions are pinned in `package.json` and `package-lock.json`.
 

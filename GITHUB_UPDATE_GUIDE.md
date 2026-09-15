@@ -14,7 +14,7 @@ From the existing repository folder:
 git remote set-url origin https://github.com/<YOUR_GITHUB_USER>/<YOUR_REPOSITORY>.git
 git remote -v
 git pull --rebase origin main
-git add README.md GITHUB_UPDATE_GUIDE.md TRANSPORT_LANES_SUMMARY.md RISK_SCORING_METHOD.md SPOT_NEWS_GLOBE_README.md TRANSPORT_PULSE_PROJECT_HANDOFF.md transport_pulse_phase3_eds_v2_prototype.html transport_pulse_phase3_eds_light_theme.json transport_pulse_phase3_powerbi_build_guide.md transport_pulse_world_map_light.svg spot_news_globe.css spot_news_globe.js spot_news_globe_data.js spot_news_globe.bundle.js spot_news_world.json package.json package-lock.json docs/spot-news-3d
+git add README.md GITHUB_UPDATE_GUIDE.md TRANSPORT_LANES_SUMMARY.md RISK_SCORING_METHOD.md SPOT_NEWS_GLOBE_README.md TRANSPORT_PULSE_PROJECT_HANDOFF.md transport_pulse_phase3_eds_v2_prototype.html transport_pulse_phase3_eds_light_theme.json transport_pulse_phase3_powerbi_build_guide.md transport_pulse_world_map_light.svg spot_news_globe.css spot_news_globe.js spot_news_globe_data.js spot_news_globe.bundle.js spot_news_world.json package.json package-lock.json server.cjs zbpack.json docs/spot-news-3d
 git status --short
 git commit -m "Add Spot News 3D supply risk globe"
 git push origin main
@@ -36,6 +36,18 @@ If the repository uses another default branch, replace `main` with that branch n
 For a branch-based GitHub Pages site, keep the prototype files at repository root, then set **Settings > Pages > Deploy from a branch**, branch `main`, folder `/ (root)`. The entry URL will end with `/transport_pulse_phase3_eds_v2_prototype.html?page=spotnews`.
 
 Company repositories may restrict GitHub Pages or custom JavaScript. Follow the repository's internal access and publishing policy before enabling it.
+
+## Zeabur deployment and BackOff recovery
+
+The repository includes a production start command and a small static server. Zeabur must deploy from the repository root so it can read `package.json` and `zbpack.json`.
+
+1. Upload or push `server.cjs`, `zbpack.json`, and the updated `package.json` together with the dashboard assets.
+2. In Zeabur, keep the root directory at the repository root. Clear any older custom start command, or set it to `npm start`.
+3. Redeploy the latest GitHub commit. A GitHub push normally triggers a new deployment automatically.
+4. Open the deployed root URL. Use `/healthz` to verify the container is running; it should return `{"status":"ok"}`.
+5. If the pod still restarts, inspect the build and runtime log lines immediately before `BackOff`; the `BackOff` event itself only reports that the process exited.
+
+References: [Zeabur Node.js deployment](https://zeabur.com/docs/en-US/guides/nodejs) and [service configuration](https://zeabur.com/docs/en-US/deploy/config).
 
 ## Suggested pull request description
 
