@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Transport Pulse Phase 3 - EDS V2</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="spot_news_globe.css" />
   <style>
     :root {
       --eds-blue: #0082f0;
@@ -139,7 +141,7 @@
     .control-bar {
       height: 52px;
       display: grid;
-      grid-template-columns: 560px 1fr;
+      grid-template-columns: 735px 1fr;
       align-items: center;
       padding: 0 14px;
       background: var(--surface);
@@ -241,7 +243,7 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       justify-self: end;
-      width: 620px;
+      width: 490px;
     }
 
     .filter-control { display: grid; grid-template-columns: auto minmax(100px, 1fr); align-items: center; gap: 7px; }
@@ -442,6 +444,170 @@
     .spot-news-copy strong { color: var(--ink); font-size: 9px; }
     .spot-news-copy span { margin-top: 2px; color: var(--muted); font-size: 8px; }
     .spot-news-risk { color: var(--muted); font-size: 8px; }
+
+    .spot-kpi-row {
+      height: 64px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .spot-kpi {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto 1fr;
+      align-items: end;
+      padding: 9px 11px 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .spot-kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--eds-blue); }
+    .spot-kpi.warn::before { background: var(--warning); }
+    .spot-kpi.bad::before { background: var(--negative); }
+    .spot-kpi.good::before { background: var(--positive); }
+    .spot-kpi span { grid-column: 1 / -1; color: var(--muted); font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    .spot-kpi strong { color: var(--ink); font-size: 24px; line-height: 1; font-weight: 520; }
+    .spot-kpi small { align-self: end; color: var(--muted); font-size: 9px; text-align: right; white-space: nowrap; }
+
+    .spot-grid {
+      height: 514px;
+      display: grid;
+      grid-template-columns: 350px 1fr 360px;
+      gap: 10px;
+    }
+
+    .spot-left, .spot-center, .spot-right {
+      min-width: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .spot-left { grid-template-rows: 258px 246px; }
+    .spot-center { grid-template-rows: 278px 226px; }
+    .spot-right { grid-template-rows: 202px 152px 140px; }
+
+    .spot-map { position: relative; height: calc(100% - 39px); background: #eef4f8; overflow: hidden; }
+    .spot-map svg { width: 100%; height: 100%; display: block; }
+    .spot-lane { fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .86; }
+    .spot-lane.high { stroke: #1677d2; stroke-width: 3.2; }
+    .spot-lane.medium { stroke: #cf7200; stroke-width: 2.5; }
+    .spot-lane.low { stroke: #18864f; stroke-width: 2; }
+    .spot-map-marker {
+      cursor: pointer;
+      fill: #fff;
+      stroke: var(--eds-blue);
+      stroke-width: 2;
+    }
+    .spot-map-marker.selected { fill: var(--eds-blue); stroke: #fff; filter: drop-shadow(0 0 3px rgba(0,130,240,.72)); }
+    .spot-marker-label { fill: var(--ink); font-size: 9px; font-weight: 700; pointer-events: none; }
+    .spot-news-square { fill: #161616; stroke: #fff; stroke-width: 1.3; }
+
+    .cu-button-grid {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      padding: 6px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+    }
+
+    .spot-cu-btn {
+      height: 24px;
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      color: var(--ink);
+      background: #fff;
+      cursor: pointer;
+      font-size: 9px;
+      font-weight: 650;
+    }
+    .spot-cu-btn.selected { color: #fff; border-color: var(--eds-blue); background: var(--eds-blue); }
+
+    .category-list { padding: 7px 10px; display: grid; gap: 5px; }
+    .category-row {
+      display: grid;
+      grid-template-columns: 8px 1fr auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 38px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    .category-row:last-child { border-bottom: 0; }
+    .category-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--eds-blue); }
+    .category-row strong, .category-row span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .category-row strong { color: var(--ink); font-size: 10px; }
+    .category-row span { color: var(--muted); font-size: 9px; margin-top: 2px; }
+    .category-row em { color: var(--muted); font-size: 9px; font-style: normal; white-space: nowrap; }
+
+    .spot-table-wrap { height: calc(100% - 39px); padding: 0 9px 8px; overflow: hidden; }
+    .spot-table-wrap table { font-size: 9px; }
+    .spot-table-wrap th { height: 26px; font-size: 8px; }
+    .spot-table-wrap td { height: 33px; }
+    .spot-news-item { cursor: pointer; }
+    .spot-news-item.selected { background: var(--eds-blue-soft); box-shadow: inset 3px 0 0 var(--eds-blue); }
+    .spot-category { color: var(--eds-blue-dark); font-weight: 700; }
+    .lt-bad { color: var(--negative); font-weight: 700; }
+    .lt-warn { color: var(--warning); font-weight: 700; }
+    .lt-good { color: var(--positive); font-weight: 700; }
+
+    .disruption-list { padding: 8px 12px; display: grid; gap: 6px; }
+    .disruption-card {
+      min-height: 48px;
+      padding: 7px 9px;
+      border: 1px solid #e3e3e3;
+      border-left: 3px solid var(--eds-blue);
+      border-radius: 2px;
+      background: #fff;
+    }
+    .disruption-card strong { display: block; color: var(--ink); font-size: 10px; }
+    .disruption-card span { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; line-height: 1.32; }
+
+    .spot-impact { padding: 8px 12px; }
+    .impact-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .impact-title strong { color: var(--ink); font-size: 22px; font-weight: 520; }
+    .impact-title span { color: var(--negative); font-size: 12px; font-weight: 700; }
+    .impact-summary { margin: 5px 0 7px; color: var(--text); font-size: 10px; line-height: 1.3; }
+    .impact-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 7px;
+    }
+    .impact-metrics div { padding: 6px; border: 1px solid #e3e3e3; border-radius: 2px; background: var(--surface-alt); }
+    .impact-metrics span { display: block; color: var(--muted); font-size: 8px; text-transform: uppercase; font-weight: 700; }
+    .impact-metrics strong { display: block; margin-top: 3px; color: var(--ink); font-size: 12px; }
+    .impact-action { margin: 0; color: var(--ink); font-size: 10px; line-height: 1.34; }
+
+    .product-list { padding: 8px 10px; display: grid; gap: 6px; }
+    .product-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 8px;
+      padding: 7px 8px;
+      border: 1px solid #e3e3e3;
+      border-left: 3px solid var(--eds-blue);
+      border-radius: 2px;
+      background: #fff;
+    }
+    .product-card strong { color: var(--ink); font-size: 11px; }
+    .product-card em { color: var(--eds-blue-dark); font-size: 10px; font-style: normal; font-weight: 700; }
+    .product-card span { grid-column: 1 / -1; color: var(--muted); font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .pg12-list { padding: 0 9px 8px; height: calc(100% - 39px); overflow: hidden; }
+    .pg12-list table { font-size: 9px; }
+    .pg12-list th { height: 20px; font-size: 8px; }
+    .pg12-list td { height: 22px; }
 
     .ai-brief { padding: 10px 12px; }
     .ai-brief p { margin: 0 0 7px; color: var(--text); font-size: 11px; line-height: 1.35; }
@@ -781,6 +947,7 @@
         <nav class="page-nav" aria-label="Report pages">
           <button class="nav-btn active" type="button" data-page="daily"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7"/><rect x="14" y="4" width="7" height="7"/><rect x="3" y="15" width="18" height="5"/></svg>Daily Control</button>
           <button class="nav-btn" type="button" data-page="network"><svg viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>Global Network</button>
+          <button class="nav-btn" type="button" data-page="spotnews"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M17 13h1M8 17h8"/></svg>Spot News</button>
           <button class="nav-btn" type="button" data-page="shipments"><svg viewBox="0 0 24 24"><path d="M4 7h11v10H4zM15 10h3l3 3v4h-6z"/><circle cx="8" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>Shipment Explorer</button>
           <button class="nav-btn ai-nav" type="button" data-page="ai"><svg viewBox="0 0 24 24"><path d="M8 4h8v4H8zM6 8h12a2 2 0 0 1 2 2v9H4v-9a2 2 0 0 1 2-2Z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M9 17h6"/></svg><span class="nav-label">AI Briefing</span></button>
         </nav>
@@ -1002,6 +1169,8 @@
         </div>
       </section>
 
+      <section class="page" id="spotnews" aria-label="Spot News"></section>
+
       <section class="page" id="shipments">
         <div class="shipment-search"><input id="shipment-search" aria-label="Search shipment or sales order" placeholder="Search shipment or sales order"/><select aria-label="Account filter"><option>All accounts</option><option>Major HK account</option><option>Taiwan key account</option></select><select aria-label="Product filter"><option>All products</option><option>Radio unit</option><option>Antenna</option><option>Baseband</option></select><select aria-label="Status filter"><option>All status</option><option>Delayed</option><option>In transit</option><option>On track</option></select><button class="link-btn primary" type="button" id="apply-shipment-filter">Apply</button></div>
         <div class="shipment-grid">
@@ -1069,7 +1238,7 @@
   </div>
 
   <script>
-    const pageTitles = { daily: "Daily Control", network: "Global Network", shipments: "Shipment Explorer", ai: "AI Briefing" };
+    const pageTitles = { daily: "Daily Control", network: "Global Network", spotnews: "Spot News", shipments: "Shipment Explorer", ai: "AI Briefing" };
     const laneData = {
       "eu-hk": { title: "Europe -> Hong Kong", summary: "Port and inland rail disruption create the largest current exception cluster.", standard: "61.0d", actual: "68.5d", variance: "+7.5d", capacity: "Constrained", delayed: "6 / 14", p44: "Pending", news: "European port and Milan-Genoa rail disruption.", action: "Review high-value shipments and confirm fallback ETA with the responsible team." },
       "intra-asia": { title: "Sea - Intra Asia", summary: "Growing regional volume is creating capacity pressure around key South China ports.", standard: "24.5d", actual: "28.5d", variance: "+4.0d", capacity: "Increasing", delayed: "5 / 18", p44: "Mixed", news: "Nansha capacity expansion and regional port updates.", action: "Confirm allocation for priority orders and monitor delayed shipment cluster." },
@@ -1092,6 +1261,119 @@
       "6200120128": { so: "SO-442971", product: "Antenna", account: "Japan key account", origin: "China", destination: "Japan", status: "Delayed", eta: "22 Jun 2026", source: "P44 ETA", p44: "P44 connected", lane: "Sea - Intra Asia", mode: "Sea", risk: "High risk", standard: "24.5 days", actual: "28.5 days", capacity: "Increasing", news: "Nansha capacity expansion" },
       "6200120199": { so: "SO-442980", product: "Radio unit", account: "Korea account", origin: "Hong Kong", destination: "Korea", status: "On track", eta: "12 Jun 2026", source: "P44 ETA", p44: "P44 connected", lane: "Courier - Asia", mode: "Courier", risk: "Low risk", standard: "6.4 days", actual: "5.8 days", capacity: "Stable", news: "No critical news linked" },
       "6200120277": { so: "SO-443004", product: "Baseband", account: "Major HK account", origin: "Estonia", destination: "Hong Kong", status: "Delayed", eta: "21 Jun 2026", source: "ETA from dashboard data", p44: "P44 location pending", lane: "Europe -> Hong Kong", mode: "Sea", risk: "High risk", standard: "61.0 days", actual: "68.5 days", capacity: "Constrained", news: "European port and rail disruption" }
+    };
+
+    const spotNewsData = {
+      "Hong Kong": {
+        newsCount: "6",
+        pg12Count: "17",
+        ltImpact: "+7.5d",
+        risk: "High relevance",
+        summary: "European port and inland rail disruption are the strongest external signals for Hong Kong supply this week.",
+        shipments: "14",
+        lanes: "2",
+        action: "Review Europe-to-Hong Kong delayed orders, validate fallback ETAs and align account communication for priority products.",
+        aiPrimary: ["EU -> Hong Kong sea lane", "AI links European port reliability pressure and Milan-Genoa rail disruption to 14 active Hong Kong shipments."],
+        aiSecondary: ["Road CN/HK transfer", "Border dwell-time watch adds a smaller but immediate delay risk for PG12 shipments due within two weeks."],
+        aiAction: ["Recommended follow-up", "Confirm fallback ETA for high-value shipments and prioritize the two largest call-off product groups."],
+        products: [
+          ["Radio unit", "38 call-offs", "Latest: 6200119727 / SO-442917 / ETA 18 Jun"],
+          ["Baseband", "24 call-offs", "Latest: 6200120277 / SO-443004 / ETA 21 Jun"]
+        ],
+        pg12: [
+          ["17 Jun", "Radio unit", "7", "high"],
+          ["20 Jun", "Baseband", "5", "medium"],
+          ["24 Jun", "Spare parts", "5", "low"]
+        ]
+      },
+      "China": {
+        newsCount: "4",
+        pg12Count: "22",
+        ltImpact: "+3.2d",
+        risk: "Medium relevance",
+        summary: "Milan-Genoa rail disruption and EU origin handover timing are the main signals for China-bound shipments.",
+        shipments: "6",
+        lanes: "2",
+        action: "Validate rail handover dates, review sea fallback for urgent orders and confirm customer communication for delayed SOs.",
+        aiPrimary: ["Europe -> China inland connection", "AI links rail disruption near Milan-Genoa to selected Europe-to-China shipments with moderate LT increase."],
+        aiSecondary: ["Air recovery option", "Air lanes remain faster than standard and can support urgent recovery if cost and capacity are approved."],
+        aiAction: ["Recommended follow-up", "Use air only for critical customer orders and keep dashboard ETA labels visible while P44 location is pending."],
+        products: [
+          ["Baseband", "44 call-offs", "Latest: 6200119716 / SO-442921 / ETA 14 Jun"],
+          ["Antenna", "31 call-offs", "Latest: 6200120881 / SO-443071 / ETA 19 Jun"]
+        ],
+        pg12: [
+          ["16 Jun", "Baseband", "9", "medium"],
+          ["21 Jun", "Antenna", "8", "medium"],
+          ["25 Jun", "Radio unit", "5", "low"]
+        ]
+      },
+      "Taiwan": {
+        newsCount: "3",
+        pg12Count: "12",
+        ltImpact: "+1.4d",
+        risk: "Watch relevance",
+        summary: "Taiwan capacity is stable, but top account call-offs should stay visible during the peak shipment window.",
+        shipments: "12",
+        lanes: "1",
+        action: "Keep Taiwan top-account orders in the daily queue and confirm PG12 readiness before lane allocation is locked.",
+        aiPrimary: ["Asia -> Taiwan lane", "AI finds no critical disruption, but volume concentration raises customer exposure if one shipment slips."],
+        aiSecondary: ["Product exposure", "Radio unit and antenna call-offs dominate the selected Taiwan scope."],
+        aiAction: ["Recommended follow-up", "Monitor the two top product groups and escalate only if actual LT moves above the standard window."],
+        products: [
+          ["Radio unit", "29 call-offs", "Latest: 6200119934 / SO-442945 / ETA 13 Jun"],
+          ["Antenna", "18 call-offs", "Latest: 6200120644 / SO-443038 / ETA 23 Jun"]
+        ],
+        pg12: [
+          ["15 Jun", "Radio unit", "4", "low"],
+          ["19 Jun", "Antenna", "5", "medium"],
+          ["26 Jun", "Baseband", "3", "low"]
+        ]
+      },
+      "Japan": {
+        newsCount: "4",
+        pg12Count: "15",
+        ltImpact: "+4.0d",
+        risk: "Medium relevance",
+        summary: "Nansha Port capacity news is relevant for Japan-bound sea shipments and allocation planning.",
+        shipments: "18",
+        lanes: "2",
+        action: "Confirm allocation for antenna shipments and monitor whether Nansha capacity change affects latest ETAs.",
+        aiPrimary: ["Sea - Intra Asia", "AI links Nansha capacity change to Japan-bound sea lanes where delayed antenna shipments are concentrated."],
+        aiSecondary: ["Asia -> Japan air lane", "Air remains stable and can be used as recovery path for urgent customer demand."],
+        aiAction: ["Recommended follow-up", "Separate delayed antenna orders from stable air shipments so actions stay focused."],
+        products: [
+          ["Antenna", "35 call-offs", "Latest: 6200120128 / SO-442971 / ETA 22 Jun"],
+          ["Radio unit", "20 call-offs", "Latest: 6200121031 / SO-443140 / ETA 24 Jun"]
+        ],
+        pg12: [
+          ["18 Jun", "Antenna", "6", "high"],
+          ["22 Jun", "Radio unit", "5", "medium"],
+          ["27 Jun", "Spare parts", "4", "low"]
+        ]
+      },
+      "Korea": {
+        newsCount: "2",
+        pg12Count: "9",
+        ltImpact: "+0.2d",
+        risk: "Low relevance",
+        summary: "No major external disruption is currently linked to Korea. Current watch is mainly urgent-order monitoring.",
+        shipments: "5",
+        lanes: "1",
+        action: "Monitor urgent orders and keep Korea in watch status unless Spot News risk or delayed shipments increase.",
+        aiPrimary: ["Courier - Asia", "AI finds no material external Spot News impact on the selected Korea shipment scope."],
+        aiSecondary: ["Urgent order watch", "The risk remains shipment-specific rather than location-driven."],
+        aiAction: ["Recommended follow-up", "Keep current routing plan and review only if PG12 orders miss handover timing."],
+        products: [
+          ["Radio unit", "16 call-offs", "Latest: 6200120199 / SO-442980 / ETA 12 Jun"],
+          ["Spare parts", "10 call-offs", "Latest: 6200120712 / SO-443055 / ETA 20 Jun"]
+        ],
+        pg12: [
+          ["16 Jun", "Radio unit", "3", "low"],
+          ["21 Jun", "Spare parts", "4", "low"],
+          ["25 Jun", "Baseband", "2", "medium"]
+        ]
+      }
     };
 
     const report = document.getElementById("report");
@@ -1164,11 +1446,21 @@
       document.getElementById("modal-news").textContent = item.news;
     }
 
+    function severityBadge(level) {
+      const label = level.charAt(0).toUpperCase() + level.slice(1);
+      return `<span class="severity ${level}">${label}</span>`;
+    }
+
+    function selectSpotCU(cu) {
+      window.spotGlobe?.selectCU(cu);
+    }
+
     document.querySelectorAll(".nav-btn").forEach(button => button.addEventListener("click", () => showPage(button.dataset.page)));
     document.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => showPage(button.dataset.go)));
-    document.querySelectorAll(".lane-row, .map-route, .exception-row, .spot-news-row").forEach(element => element.addEventListener("click", () => { selectLane(element.dataset.laneId); if (element.classList.contains("exception-row") || element.classList.contains("spot-news-row")) showPage("network"); }));
+    document.querySelectorAll(".lane-row, .map-route, .exception-row, .spot-news-row").forEach(element => element.addEventListener("click", () => { selectLane(element.dataset.laneId); if (element.classList.contains("exception-row")) showPage("network"); if (element.classList.contains("spot-news-row")) showPage("spotnews"); }));
     document.querySelectorAll(".map-route").forEach(element => element.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectLane(element.dataset.laneId); } }));
     document.querySelectorAll(".shipment-row").forEach(row => row.addEventListener("click", () => selectShipment(row.dataset.shipment)));
+    document.querySelectorAll(".spot-cu-btn, .spot-map-marker, .spot-news-item").forEach(element => element.addEventListener("click", () => selectSpotCU(element.dataset.spotCu)));
 
     const drawer = document.getElementById("filter-drawer");
     function setDrawer(open) { drawer.classList.toggle("open", open); drawer.setAttribute("aria-hidden", String(!open)); }
@@ -1180,7 +1472,7 @@
     const cuFilter = document.getElementById("cu-filter");
     const periodFilter = document.getElementById("period-filter");
     const modeFilter = document.getElementById("mode-filter");
-    function syncScope() { document.getElementById("scope-cu").textContent = cuFilter.value; document.getElementById("scope-period").textContent = periodFilter.value; document.getElementById("scope-mode").textContent = modeFilter.value; }
+    function syncScope() { document.getElementById("scope-cu").textContent = cuFilter.value; document.getElementById("scope-period").textContent = periodFilter.value; document.getElementById("scope-mode").textContent = modeFilter.value; selectSpotCU(cuFilter.value); }
     function applyModeFilter() {
       const selectedMode = modeFilter.value.toLowerCase();
       ["air", "sea", "road"].forEach(mode => {
@@ -1192,7 +1484,7 @@
     }
     [cuFilter, periodFilter, modeFilter].forEach(control => control.addEventListener("change", () => { syncScope(); if (control === modeFilter) applyModeFilter(); showToast("Synced slicers updated"); }));
 
-    document.getElementById("reset-filters").addEventListener("click", () => { cuFilter.value = "Hong Kong"; periodFilter.value = "2026 Q2"; modeFilter.value = "All modes"; drawer.querySelectorAll("select").forEach(select => select.selectedIndex = 0); drawer.querySelectorAll("input").forEach(input => input.value = ""); syncScope(); applyModeFilter(); showToast("Filters reset to report defaults"); });
+    document.getElementById("reset-filters").addEventListener("click", () => { cuFilter.value = "Hong Kong"; periodFilter.value = "2026 Q2"; modeFilter.value = "All modes"; drawer.querySelectorAll("select").forEach(select => select.selectedIndex = 0); drawer.querySelectorAll("input").forEach(input => input.value = ""); syncScope(); selectSpotCU("Hong Kong"); applyModeFilter(); showToast("Filters reset to report defaults"); });
     document.getElementById("apply-shipment-filter").addEventListener("click", () => showToast("Shipment filters applied"));
 
     const mapLayerSelectors = { air: ".mode-air", sea: ".mode-sea", road: ".mode-road", locations: ".map-port", news: ".map-news", p44: ".p44-marker" };
@@ -1216,8 +1508,13 @@
     const requestedPage = new URLSearchParams(location.search).get("page") || "daily";
     showPage(requestedPage);
     syncScope();
+    selectSpotCU(cuFilter.value);
     fitReport();
     window.addEventListener("resize", fitReport);
   </script>
+  <script>
+    window.transportPulse = { laneData, spotNewsData, shipmentData, showPage, selectLane, selectShipment };
+  </script>
+  <script src="spot_news_globe.bundle.js"></script>
 </body>
 </html>

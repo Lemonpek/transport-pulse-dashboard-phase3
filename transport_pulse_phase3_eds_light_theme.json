@@ -1,0 +1,45 @@
+{
+  "name": "Transport Pulse Phase 3 - EDS Light",
+  "dataColors": [
+    "#0082F0",
+    "#A56EFF",
+    "#24A064",
+    "#F5A623",
+    "#E04B5F",
+    "#52C7D9",
+    "#7A7A7A",
+    "#5B7CFA"
+  ],
+  "background": "#F2F2F2",
+  "foreground": "#242424",
+  "tableAccent": "#0082F0",
+  "good": "#16834B",
+  "neutral": "#A75D00",
+  "bad": "#C6283D",
+  "maximum": "#0082F0",
+  "center": "#D8D8D8",
+  "minimum": "#E04B5F",
+  "null": "#B8B8B8",
+  "textClasses": {
+    "callout": {
+      "fontFace": "Arial",
+      "fontSize": 26,
+      "color": "#161616"
+    },
+    "title": {
+      "fontFace": "Arial",
+      "fontSize": 12,
+      "color": "#161616"
+    },
+    "header": {
+      "fontFace": "Arial",
+      "fontSize": 10,
+      "color": "#525252"
+    },
+    "label": {
+      "fontFace": "Arial",
+      "fontSize": 9,
+      "color": "#666666"
+    }
+  }
+}
